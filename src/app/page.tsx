@@ -1,103 +1,172 @@
-import Image from "next/image";
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import DataBar from '@/app/ui/DataBar'
+import {Dataset} from "@/app/types/datasets"
+import { useSearchParams, useRouter } from 'next/navigation';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Card,
+  CardContent,
+  Typography,
+  Divider,
+  Stack,
+  Box,
+  Paper,
+  Container, 
+  CircularProgress,
+  Grid,
+  CardHeader,
+  Link,
+  Breadcrumbs
+} from '@mui/material';
+
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [datasets, setDatasets] = useState<Dataset[]>([])
+  const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
+  const [loading, setLoading] = useState(true);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const datasetIdParam = searchParams.get('dataset');
+
+  // When the URL param changes, set the selectedDataset
+  useEffect(() => {
+    const id = datasetIdParam ? parseInt(datasetIdParam, 10) : null;
+    if (id && datasets.length > 0) {
+      const match = datasets.find(d => d.id === id);
+      if (match) setSelectedDataset(match);
+    }
+  }, [datasetIdParam, datasets]);
+
+
+  // When selectedDataset changes, update the URL
+  useEffect(() => {
+    if (selectedDataset) {
+      const current = searchParams.get('dataset');
+      if (current !== String(selectedDataset.id)) {
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.set('dataset', String(selectedDataset.id));
+        router.replace(`?${newParams.toString()}`);
+      }
+    }
+  }, [selectedDataset, searchParams, router]);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const res = await fetch("http://localhost:8000/datasets") // or /api/datasets
+        const data = await res.json()
+
+        const parsedData = data.map((d : Dataset) => ({
+          ...d,
+          dataset_start_date: new Date(d.dataset_start_date).getFullYear(),
+          dataset_end_date: new Date(d.dataset_end_date).getFullYear(),
+        }));
+
+        setDatasets(parsedData);
+        setSelectedDataset(parsedData[0]);
+      } catch (err) {
+        console.error("Failed to fetch datasets:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  return (
+    <div>
+      <h1>Home</h1> 
+      {loading ? <CircularProgress /> : 
+      <>
+       <Accordion>
+       <AccordionSummary
+        expandIcon={<ExpandMoreIcon />}
+          aria-controls="panel1-content"
+          id="panel1-header"
+        >
+          <Breadcrumbs aria-label="breadcrumb">
+          <Link underline="hover" color="inherit" href="#">
+          {selectedDataset?.collection_short_name}
+          </Link>
+          <Link
+            underline="hover"
+            color="inherit"
+            href="#"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+            {selectedDataset?.dataset_name}
+          </Link>
+         
+        </Breadcrumbs>
+  
+        </AccordionSummary>
+        <AccordionDetails>
+          <Container>
+        <Grid container spacing={3}>
+        <Grid size={4}>
+          <Card elevation={4}>
+            <CardContent>
+              <CardHeader title="Selected Dataset" />
+              <Typography variant="body2" component="div">
+                {selectedDataset?.dataset_name}
+              </Typography>
+        
+              <Typography variant="body2" component="div">
+                Format: {selectedDataset?.dataset_format}
+              </Typography>
+              <Typography variant="body2" component="div">
+                Extent: {selectedDataset?.dataset_start_date}- {selectedDataset?.dataset_end_date}
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={4}>
+        <Card elevation={4}>
+            <CardContent>
+              <CardHeader title="Collection Information" />
+              <Typography variant="body2" component="div">
+                Data Collection: {selectedDataset?.collection_short_name}
+              </Typography>
+              <Typography variant="body2" component="div">
+                Description: 
+                <Box>{selectedDataset?.collection_description}</Box>
+              </Typography>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid size={4}>
+        <Card elevation={4}>
+            <CardContent>
+              <CardHeader title="Publication" />
+              <Typography variant="body2" component="div">
+              Source: <Link href="{selectedDataset?.publication_url}">{selectedDataset?.publication_authors}</Link>
+              </Typography>
+              <Typography variant="body2" component="div">
+                Title: {selectedDataset?.publication_title}
+              </Typography>
+
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+      </Container>
+      <br></br>
+        <DataBar 
+          datasets={datasets}
+          selectedDataset={selectedDataset}
+          setSelectedDataset={setSelectedDataset} 
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </AccordionDetails>
+          </Accordion>
+      </>
+      }
     </div>
   );
 }
