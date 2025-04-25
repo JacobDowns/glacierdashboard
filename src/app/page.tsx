@@ -1,27 +1,51 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import DataBar from '@/app/ui/DataBar';
-import ExpandableContainer from '@/app/ui/ExpandableContainer';
-import { Dataset } from "@/app/types/datasets";
+import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from 'next/navigation';
-import {
-  CircularProgress,
-} from '@mui/material';
+import { CircularProgress } from '@mui/material';
+import DataBar from '@/app/ui/DataBar';
+import Map from '@/app/ui/Map';
+import { Dataset } from "@/app/types/datasets";
 
 export default function Home() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lat, setLat] = useState<number>(61.0);
+  const [lon, setLon] = useState<number>(-149.0);
+  const [zoom, setZoom] = useState<number>(6);
+  const [range, setRange] = useState<[number, number] | null>(null);
+  const [colormap, setColormap] = useState<string>('viridis');
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  const datasetIdParam = searchParams.get('dataset');
+  const initialLoad = useRef(true);
+  const firstRange = useRef<[number | null, number | null]>([null, null]);
+
+  useEffect(() => {
+    if (!initialLoad.current) return;
+
+    const latParam = searchParams.get('lat');
+    const lonParam = searchParams.get('lon');
+    const zoomParam = searchParams.get('zoom');
+    const colormapParam = searchParams.get('colormap');
+    const minParam = searchParams.get("min");
+    const maxParam = searchParams.get("max");
+
+    if (latParam) setLat(parseFloat(latParam));
+    if (lonParam) setLon(parseFloat(lonParam));
+    if (zoomParam) setZoom(parseInt(zoomParam, 10));
+    if (colormapParam) setColormap(colormapParam);
+
+    const min = minParam ? parseFloat(minParam) : null;
+    const max = maxParam ? parseFloat(maxParam) : null;
+    firstRange.current = [min, max];
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("http://localhost:8000/datasets");
+        const res = await fetch("http://127.0.0.1:8000/datasets");
         const data = await res.json();
 
         const parsedData = data.map((d: Dataset) => ({
@@ -32,7 +56,7 @@ export default function Home() {
 
         setDatasets(parsedData);
 
-        const idFromParam = datasetIdParam ? parseInt(datasetIdParam, 10) : null;
+        const idFromParam = searchParams.get('dataset') ? parseInt(searchParams.get('dataset')!, 10) : null;
         const matchedDataset = parsedData.find(d => d.id === idFromParam);
 
         if (matchedDataset) {
@@ -40,7 +64,6 @@ export default function Home() {
         } else if (parsedData.length > 0) {
           setSelectedDataset(parsedData[0]);
         }
-
       } catch (err) {
         console.error("Failed to fetch datasets:", err);
       } finally {
@@ -49,31 +72,73 @@ export default function Home() {
     }
 
     fetchData();
-  }, [datasetIdParam]);
+  }, []);
 
-  // Keep URL in sync when user selects a dataset
   useEffect(() => {
-    if (selectedDataset) {
-      const current = searchParams.get('dataset');
-      if (current !== String(selectedDataset.id)) {
-        const newParams = new URLSearchParams(searchParams.toString());
-        newParams.set('dataset', String(selectedDataset.id));
-        router.replace(`?${newParams.toString()}`);
-      }
+    if (!selectedDataset) return;
+
+    const defaultMin = selectedDataset.data_type_plot_min ?? 0;
+    const defaultMax = selectedDataset.data_type_plot_max ?? 1;
+    const [minOverride, maxOverride] = firstRange.current;
+
+    if (minOverride !== null && maxOverride !== null) {
+      setRange([minOverride, maxOverride]);
+      firstRange.current = [null, null];
+    } else {
+      setRange([defaultMin, defaultMax]);
     }
-  }, [selectedDataset, searchParams, router]);
+
+    initialLoad.current = false;
+  }, [selectedDataset]);
+
+  useEffect(() => {
+    if (!selectedDataset || !range) return;
+
+    const newParams = new URLSearchParams(searchParams.toString());
+
+    newParams.set('dataset', String(selectedDataset.id));
+    newParams.set('colormap', colormap);
+    newParams.set('min', range[0].toString());
+    newParams.set('max', range[1].toString());
+
+    const round4 = (val: number) => Number(val.toFixed(4));
+    if (lat !== null) newParams.set('lat', round4(lat).toString());
+    if (lon !== null) newParams.set('lon', round4(lon).toString());
+    if (zoom !== null) newParams.set('zoom', round4(zoom).toString());
+
+    const currentUrl = searchParams.toString();
+    const newUrl = newParams.toString();
+    if (currentUrl !== newUrl) {
+      router.replace(`?${newUrl}`);
+    }
+  }, [selectedDataset, colormap, range, lat, lon, zoom]);
+
+  const handleMapMoveEnd = (newLat: number, newLon: number, newZoom: number) => {
+    setLat(newLat);
+    setLon(newLon);
+    setZoom(newZoom);
+  };
 
   return (
     <div>
-      <h1>Home</h1>
-      {loading ? (
+      {loading || !range ? (
         <CircularProgress />
       ) : (
-        <DataBar
-          datasets={datasets}
-          selectedDataset={selectedDataset}
-          setSelectedDataset={setSelectedDataset}
-        />
+        selectedDataset && lat !== null && lon !== null && zoom !== null && range && (
+          <div>
+            <Map
+              selectedDataset={selectedDataset}
+              lat={lat}
+              lng={lon}
+              zoom={zoom}
+              onMoveEnd={handleMapMoveEnd}
+              colormap={colormap}
+              range={range}
+              setRange={setRange}
+            />
+            <DataBar datasets={datasets} selectedDataset={selectedDataset} setSelectedDataset={setSelectedDataset} />
+          </div>
+        )
       )}
     </div>
   );

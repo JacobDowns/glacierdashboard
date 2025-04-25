@@ -125,6 +125,11 @@ export default function DataBar({ datasets, selectedDataset, setSelectedDataset 
     }
   }, [selectedDataset, datasets]);
 
+  useEffect(() => {
+    const selectedIndex = Object.keys(rowSelection)[0];
+    const selected = selectedIndex !== undefined ? datasets[parseInt(selectedIndex)] : null;
+    setSelectedDataset(selected ?? null);
+  }, [rowSelection, datasets, setSelectedDataset]);
 
 
 
