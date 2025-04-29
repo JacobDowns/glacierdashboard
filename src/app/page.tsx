@@ -16,6 +16,7 @@ export default function Home() {
   const [zoom, setZoom] = useState<number>(6);
   const [range, setRange] = useState<[number, number] | null>(null);
   const [colormap, setColormap] = useState<string>('viridis');
+  const [selectedGlacier, setSelectedGlacier] = useState<{ gid: number; rgi_id: string} | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -120,7 +121,7 @@ export default function Home() {
   };
 
   return (
-    <div>
+    <div style={{ width: '100vw'}}>
       {loading || !range ? (
         <CircularProgress />
       ) : (
@@ -135,8 +136,17 @@ export default function Home() {
               colormap={colormap}
               range={range}
               setRange={setRange}
+              setColormap={setColormap}
+              selectedGlacier={selectedGlacier}
+              setSelectedGlacier={setSelectedGlacier}
             />
-            <DataBar datasets={datasets} selectedDataset={selectedDataset} setSelectedDataset={setSelectedDataset} />
+            <DataBar 
+            datasets={datasets} 
+            selectedDataset={selectedDataset} 
+            setSelectedDataset={setSelectedDataset} 
+            selectedGlacier={selectedGlacier}
+            setSelectedGlacier={setSelectedGlacier}
+            />
           </div>
         )
       )}

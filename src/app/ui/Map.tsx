@@ -9,6 +9,7 @@ import { getColormapInterpolator } from "@/app/lib/colormaps";
 
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
+
 type Props = {
   selectedDataset: Dataset;
   lat: number;
@@ -19,6 +20,8 @@ type Props = {
   range: [number, number];
   setRange: (range: [number, number]) => void;
   setColormap: (colormap: string) => void;
+  selectedGlacier: { gid: number; rgi_id: string } | null;
+  setSelectedGlacier: (glacier: { gid: number; rgi_id: string } | null) => void;
 };
 
 export default function Map({
@@ -30,7 +33,9 @@ export default function Map({
   colormap,
   range,
   setRange,
-  setColormap
+  setColormap,
+  selectedGlacier,
+  setSelectedGlacier
 }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -58,15 +63,19 @@ export default function Map({
         ? `http://127.0.0.1:8000/tiles/{z}/{x}/{y}?dataset_name=${datasetName}`
         : `http://127.0.0.1:8000/tiles/{z}/{x}/{y}`;
 
-    const source = map.getSource(sourceId);
-    if (!source) {
-      map.addSource(sourceId, {
-        type: "vector",
-        tiles: [tilesUrl],
-        minzoom: 0,
-        maxzoom: 14,
-      });
+    if (map.getLayer(layerId)) {
+      map.removeLayer(layerId);
     }
+    if (map.getSource(sourceId)) {
+      map.removeSource(sourceId);
+    }
+
+    map.addSource(sourceId, {
+      type: "vector",
+      tiles: [tilesUrl],
+      minzoom: 0,
+      maxzoom: 14,
+    });
 
     if (!map.getLayer(layerId)) {
       map.addLayer({
@@ -82,19 +91,19 @@ export default function Map({
     const paintProps =
       selectedDataset.dataset_format === "vector"
         ? {
-            "fill-color": [
-              "interpolate",
-              ["linear"],
-              ["to-number", ["get", "stat_value"]],
-              ...colorStops,
-            ],
-            "fill-opacity": 0.9,
-          }
+          "fill-color": [
+            "interpolate",
+            ["linear"],
+            ["to-number", ["get", "stat_value"]],
+            ...colorStops,
+          ],
+          "fill-opacity": 0.9,
+        }
         : {
-            "fill-color": "rgba(0, 0, 0, 0)",
-            "fill-opacity": 1.0,
-            "fill-outline-color": "black",
-          };
+          "fill-color": "rgba(0, 0, 0, 0)",
+          "fill-opacity": 1.0,
+          "fill-outline-color": "black",
+        };
 
     map.setPaintProperty(layerId, "fill-color", paintProps["fill-color"]);
     map.setPaintProperty(layerId, "fill-opacity", paintProps["fill-opacity"]);
@@ -104,6 +113,8 @@ export default function Map({
   };
 
   useEffect(() => {
+
+
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = new maplibregl.Map({
@@ -125,7 +136,11 @@ export default function Map({
       });
       if (features.length > 0) {
         console.log("Clicked Glacier Properties:", features[0].properties);
+        const gid = features[0].properties.gid;
+        const rgi_id = features[0].properties.rgi_id;
+        setSelectedGlacier({ gid, rgi_id });  
       } else {
+        setSelectedGlacier(null);
         console.log("No glacier found at this location.");
       }
     });

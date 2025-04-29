@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useMemo, useEffect } from "react"
-import { Dataset } from "@/app/types/datasets"
+import { useState, useMemo, useEffect } from "react";
+import { Dataset } from "@/app/types/datasets";
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -16,13 +16,12 @@ import {
   Stack,
   Box,
   Link,
-  Breadcrumbs,
   Paper,
   IconButton,
   Collapse,
   Tabs,
   Tab,
-
+  CircularProgress
 } from '@mui/material';
 
 import DatasetCard from '@/app/ui/DatasetCard';
@@ -60,18 +59,25 @@ type Props = {
   datasets: Dataset[];
   selectedDataset: Dataset | null;
   setSelectedDataset: (dataset: Dataset | null) => void;
-}
+  selectedGlacier: { gid: number; rgi_id: string } | null;
+  setSelectedGlacier: (glacier: { gid: number; rgi_id: string } | null) => void;
+};
 
-
-
-export default function DataBar({ datasets, selectedDataset, setSelectedDataset }: Props) {
-
+export default function DataBar({
+  datasets,
+  selectedDataset,
+  setSelectedDataset,
+  selectedGlacier,
+  setSelectedGlacier,
+}: Props) {
   const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({});
   const [expanded, setExpanded] = useState<boolean>(false);
   const [tabValue, setTabValue] = useState(0);
 
+  const [glacierStats, setGlacierStats] = useState<any>(null);
+  const [loadingGlacierStats, setLoadingGlacierStats] = useState(false);
+
   const columns = useMemo<MRT_ColumnDef<Dataset>[]>(
-    //column definitions...
     () => [
       {
         header: 'Dataset Name',
@@ -98,35 +104,12 @@ export default function DataBar({ datasets, selectedDataset, setSelectedDataset 
         accessorKey: 'publication_authors',
       },
       {
-        header: 'Publication Year',
-        accessorKey: 'publication_year',
-      },
-      {
         header: 'Data Type',
         accessorKey: 'data_type_name',
       },
-
     ],
     [],
   );
-
-
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setTabValue(newValue);
-  };
-
-  // Set rowSelection from selectedDataset on mount or change
-  useEffect(() => {
-    if (selectedDataset) {
-      const index = datasets.findIndex(d => d.id === selectedDataset.id);
-      if (index !== -1) {
-        setRowSelection({ [index]: true });
-      }
-    }
-  }, [selectedDataset, datasets]);
-
-
-
 
   const table = useMaterialReactTable<Dataset>({
     columns,
@@ -158,59 +141,79 @@ export default function DataBar({ datasets, selectedDataset, setSelectedDataset 
         size: 200,
       },
     },
-
     enableRowSelection: false,
     enableGrouping: true,
     enableColumnResizing: true,
     groupedColumnMode: 'remove',
-
     initialState: {
-      density: 'compact',
+      density: 'comfortable',
       expanded: {},
       grouping: ['collection_short_name'],
       pagination: { pageIndex: 0, pageSize: 20 },
     },
-
     muiTableBodyRowProps: ({ row }) => {
       const isSelected = selectedDataset?.id === row.original.id;
       const isGroupRow = row.getIsGrouped();
 
       return {
-        onClick: () => {
-          if (!isGroupRow) {
-            setSelectedDataset(row.original);
-          }
-        },
+        onClick: isGroupRow
+          ? row.getToggleExpandedHandler()
+          : () => setSelectedDataset(row.original),
         sx: {
-          cursor: isGroupRow ? 'default' : 'pointer',
-          backgroundColor: isSelected ? '#e3f2fd' : isGroupRow ? '#ccc' : 'inherit',
+          cursor: 'pointer',
+          backgroundColor: isSelected
+            ? '#e3f2fd'
+            : isGroupRow
+              ? '#eee'
+              : 'inherit',
           border: isGroupRow ? '1px solid #aaa' : undefined,
           borderRadius: isGroupRow ? '1px' : undefined,
-          mx: isGroupRow ? 1 : 0, // horizontal margin to separate groups slightly
+          mx: isGroupRow ? 1 : 0,
         },
       };
     },
-
     positionToolbarAlertBanner: 'none',
-
-
-
   });
 
-
-  const handleBreadcrumbClick = (event: React.MouseEvent): void => {
-    // Prevent default link behavior
-    event.preventDefault();
-    setExpanded(!expanded);
+  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
+
+  useEffect(() => {
+    if (selectedDataset) {
+      const index = datasets.findIndex(d => d.id === selectedDataset.id);
+      if (index !== -1) {
+        setRowSelection({ [index]: true });
+      }
+    }
+  }, [selectedDataset, datasets]);
+
+  useEffect(() => {
+    if (selectedGlacier) {
+      setLoadingGlacierStats(true);
+
+      // Simulate API call to get glacier stats
+      setTimeout(() => {
+        setGlacierStats({
+          area: "12.3 km²",
+          mean_elevation: "2345 m",
+          status: "Retreating",
+          rgi_id: selectedGlacier.rgi_id,
+        });
+        setLoadingGlacierStats(false);
+      }, 1000);
+    } else {
+      setGlacierStats(null);
+    }
+  }, [selectedGlacier]);
 
   const toggleExpanded = (): void => {
     setExpanded(!expanded);
   };
 
   return (
-    <Paper elevation={2} sx={{ overflow: 'hidden' }}>
-      {/* Header with breadcrumbs */}
+    <Paper elevation={4} sx={{ overflow: 'hidden' }}>
+      {/* Header */}
       <Box
         sx={{
           display: 'flex',
@@ -218,17 +221,36 @@ export default function DataBar({ datasets, selectedDataset, setSelectedDataset 
           alignItems: 'center',
           p: 2,
           borderBottom: expanded ? 1 : 0,
-          borderColor: 'divider'
+          backgroundColor: '#F5FBFF',
+          borderColor: 'divider',
         }}
       >
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link underline="hover" color="inherit" href="#" onClick={handleBreadcrumbClick}>
-            {selectedDataset?.collection_name}
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <Typography variant="body1">Selected Dataset:</Typography>
+          <Link
+            component="button"
+            variant="body1"
+            onClick={() => {
+              setExpanded(true);
+              setTabValue(1);
+            }}
+          >
+            {selectedDataset?.collection_name} / {selectedDataset?.dataset_name}
           </Link>
-          <Link underline="hover" color="inherit" href="#" onClick={handleBreadcrumbClick}>
-            {selectedDataset?.dataset_name}
+        </Stack>
+        <Stack direction="row" alignItems="center" spacing={0.5}>
+          <Typography variant="body1">Selected Glacier:</Typography>
+          <Link
+            component="button"
+            variant="body1"
+            onClick={() => {
+              setExpanded(true);
+              setTabValue(2);
+            }}
+          >
+            {selectedGlacier ? selectedGlacier.rgi_id : "None"}
           </Link>
-        </Breadcrumbs>
+        </Stack>
         <IconButton
           onClick={toggleExpanded}
           size="small"
@@ -241,7 +263,6 @@ export default function DataBar({ datasets, selectedDataset, setSelectedDataset 
 
       {/* Collapsible content */}
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-
         <Box sx={{ width: '100%' }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs
@@ -249,25 +270,42 @@ export default function DataBar({ datasets, selectedDataset, setSelectedDataset 
               onChange={handleChange}
               aria-label="basic tabs example"
             >
-              <Tab label="Details" {...a11yProps(0)} />
-              <Tab label="Datasets" {...a11yProps(1)} />
-              <Tab label="Tab Three" {...a11yProps(2)} />
+              <Tab label="Select Dataset" {...a11yProps(0)} />
+              <Tab label="Dataset Details" {...a11yProps(1)} />
+              <Tab label="Glacier Details" {...a11yProps(2)} />
             </Tabs>
           </Box>
+
           <TabPanel value={tabValue} index={0}>
-            <DatasetCard selectedDataset={selectedDataset} />
-          </TabPanel>
-          <TabPanel value={tabValue} index={1}>
             <MaterialReactTable table={table} />
           </TabPanel>
+
+          <TabPanel value={tabValue} index={1}>
+            <DatasetCard selectedDataset={selectedDataset} />
+          </TabPanel>
+
           <TabPanel value={tabValue} index={2}>
-            <Typography>
-              Tab Three content is shown when this tab is selected.
-            </Typography>
+            {selectedGlacier === null ? (
+              <Typography>No glacier selected.</Typography>
+            ) : loadingGlacierStats ? (
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <CircularProgress size={20} />
+                <Typography>Loading glacier stats...</Typography>
+              </Stack>
+            ) : (
+              glacierStats && (
+                <Box>
+                  <Typography variant="h6">Glacier Stats</Typography>
+                  <Typography>RGI ID: {glacierStats.rgi_id}</Typography>
+                  <Typography>Area: {glacierStats.area}</Typography>
+                  <Typography>Mean Elevation: {glacierStats.mean_elevation}</Typography>
+                  <Typography>Status: {glacierStats.status}</Typography>
+                </Box>
+              )
+            )}
           </TabPanel>
         </Box>
-
       </Collapse>
     </Paper>
-  )
+  );
 }
