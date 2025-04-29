@@ -26,5 +26,5 @@ export type GlacierStat = {
 
 export interface GlacierStatsTableProps {
     data: GlacierStatsQueryResult;
-  }
+}
   

@@ -1,14 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Dataset } from "@/app/types/datasets";
 import Legend from "@/app/ui/Legend";
 import { getColormapInterpolator } from "@/app/lib/colormaps";
 
-const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
-
+// Define multiple free basemaps
+const BASEMAPS = {
+  "Carto Light": "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json",
+  "OpenStreetMap": "https://demotiles.maplibre.org/style.json",
+  "ESRI Satellite": "https://tiles.openaerialmap.org/styles/osm-bright/style.json",
+};
 
 type Props = {
   selectedDataset: Dataset;
@@ -35,13 +39,15 @@ export default function Map({
   setRange,
   setColormap,
   selectedGlacier,
-  setSelectedGlacier
+  setSelectedGlacier,
 }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const mapLoadedRef = useRef(false);
+  const [basemap, setBasemap] = useState<string>(Object.values(BASEMAPS)[0]);
 
   const layerId = "glacier-layer";
+  const outlineLayerId = "selected-glacier-outline";
   const sourceId = "glaciers";
 
   const updateGlacierLayer = () => {
@@ -63,12 +69,9 @@ export default function Map({
         ? `http://127.0.0.1:8000/tiles/{z}/{x}/{y}?dataset_name=${datasetName}`
         : `http://127.0.0.1:8000/tiles/{z}/{x}/{y}`;
 
-    if (map.getLayer(layerId)) {
-      map.removeLayer(layerId);
-    }
-    if (map.getSource(sourceId)) {
-      map.removeSource(sourceId);
-    }
+    if (map.getLayer(layerId)) map.removeLayer(layerId);
+    if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
+    if (map.getSource(sourceId)) map.removeSource(sourceId);
 
     map.addSource(sourceId, {
       type: "vector",
@@ -77,71 +80,78 @@ export default function Map({
       maxzoom: 14,
     });
 
-    if (!map.getLayer(layerId)) {
-      map.addLayer({
-        id: layerId,
-        type: "fill",
-        source: sourceId,
-        "source-layer": "glaciers",
-        paint: {},
-      });
-    }
+    map.addLayer({
+      id: layerId,
+      type: "fill",
+      source: sourceId,
+      "source-layer": "glaciers",
+      paint:
+        selectedDataset.dataset_format === "vector"
+          ? {
+              "fill-color": [
+                "interpolate",
+                ["linear"],
+                ["to-number", ["get", "stat_value"]],
+                ...colorStops,
+              ],
+              "fill-opacity": 0.9,
+            }
+          : {
+              "fill-color": "rgba(0, 0, 0, 0)",
+              "fill-opacity": 1.0,
+              "fill-outline-color": "black",
+            },
+    });
 
-    // Paint update logic based on dataset format
-    const paintProps =
-      selectedDataset.dataset_format === "vector"
-        ? {
-          "fill-color": [
-            "interpolate",
-            ["linear"],
-            ["to-number", ["get", "stat_value"]],
-            ...colorStops,
-          ],
-          "fill-opacity": 0.9,
-        }
-        : {
-          "fill-color": "rgba(0, 0, 0, 0)",
-          "fill-opacity": 1.0,
-          "fill-outline-color": "black",
-        };
-
-    map.setPaintProperty(layerId, "fill-color", paintProps["fill-color"]);
-    map.setPaintProperty(layerId, "fill-opacity", paintProps["fill-opacity"]);
-    if ("fill-outline-color" in paintProps) {
-      map.setPaintProperty(layerId, "fill-outline-color", paintProps["fill-outline-color"]);
-    }
+    map.addLayer({
+      id: outlineLayerId,
+      type: "line",
+      source: sourceId,
+      "source-layer": "glaciers",
+      paint: {
+        "line-color": "red",
+        "line-width": 2,
+      },
+      filter: ["==", "gid", -1],
+    });
   };
 
-  useEffect(() => {
+  const updateSelectedGlacierOutline = () => {
+    const map = mapRef.current;
+    if (!map || !mapLoadedRef.current) return;
+    if (!map.getLayer(outlineLayerId)) return;
 
+    map.setFilter(outlineLayerId, selectedGlacier ? ["==", "gid", selectedGlacier.gid] : ["==", "gid", -1]);
+  };
 
-    if (!mapContainerRef.current || mapRef.current) return;
+  const initializeMap = () => {
+    if (!mapContainerRef.current) return;
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: MAP_STYLE,
+      style: basemap,
       center: [lng, lat],
       zoom,
     });
 
+    mapRef.current = map;
+
     map.on("load", () => {
       mapLoadedRef.current = true;
       updateGlacierLayer();
+      updateSelectedGlacierOutline();
     });
 
     map.on("click", (event) => {
-      if (!selectedDataset) return;
       const features = map.queryRenderedFeatures(event.point, {
         layers: [layerId],
       });
       if (features.length > 0) {
-        console.log("Clicked Glacier Properties:", features[0].properties);
-        const gid = features[0].properties.gid;
-        const rgi_id = features[0].properties.rgi_id;
-        setSelectedGlacier({ gid, rgi_id });  
+        const gid = features[0].properties?.gid;
+        const rgi_id = features[0].properties?.rgi_id;
+        setSelectedGlacier({ gid, rgi_id });
       } else {
         setSelectedGlacier(null);
-        console.log("No glacier found at this location.");
       }
     });
 
@@ -149,23 +159,40 @@ export default function Map({
       const center = map.getCenter();
       onMoveEnd(center.lat, center.lng, map.getZoom());
     });
+  };
 
-    mapRef.current = map;
-
-    return () => {
-      map.remove();
-      mapRef.current = null;
-      mapLoadedRef.current = false;
-    };
+  useEffect(() => {
+    if (!mapRef.current) {
+      initializeMap();
+    }
   }, []);
 
   useEffect(() => {
     updateGlacierLayer();
   }, [selectedDataset, colormap, range]);
 
+  useEffect(() => {
+    updateSelectedGlacierOutline();
+  }, [selectedGlacier]);
+
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    mapRef.current.setStyle(basemap);
+    mapLoadedRef.current = false;
+
+    mapRef.current.once("styledata", () => {
+      mapLoadedRef.current = true;
+      updateGlacierLayer();
+      updateSelectedGlacierOutline();
+    });
+  }, [basemap]);
+
   return (
     <div className="relative">
       <div ref={mapContainerRef} style={{ width: "100vw", height: "800px" }} />
+      
+      {/* Legend */}
       <div className="absolute bottom-4 left-4 z-10">
         {selectedDataset && (
           <Legend
@@ -176,6 +203,22 @@ export default function Map({
             onRangeChange={setRange}
           />
         )}
+      </div>
+
+      {/* Basemap Switcher */}
+      <div className="absolute top-4 left-4 z-10 bg-white p-2 rounded shadow">
+        <label className="mr-2 text-sm font-medium">Base map:</label>
+        <select
+          value={basemap}
+          onChange={(e) => setBasemap(e.target.value)}
+          className="text-sm border rounded px-2 py-1"
+        >
+          {Object.entries(BASEMAPS).map(([label, url]) => (
+            <option key={label} value={url}>
+              {label}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );

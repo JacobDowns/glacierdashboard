@@ -25,6 +25,8 @@ import {
 } from '@mui/material';
 
 import DatasetCard from '@/app/ui/DatasetCard';
+import StatsTable from '@/app/ui/StatsTable';
+import { GlacierStatsQueryResult } from "@/app/types/glaciers";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -74,8 +76,6 @@ export default function DataBar({
   const [expanded, setExpanded] = useState<boolean>(false);
   const [tabValue, setTabValue] = useState(0);
 
-  const [glacierStats, setGlacierStats] = useState<any>(null);
-  const [loadingGlacierStats, setLoadingGlacierStats] = useState(false);
 
   const columns = useMemo<MRT_ColumnDef<Dataset>[]>(
     () => [
@@ -189,22 +189,7 @@ export default function DataBar({
   }, [selectedDataset, datasets]);
 
   useEffect(() => {
-    if (selectedGlacier) {
-      setLoadingGlacierStats(true);
 
-      // Simulate API call to get glacier stats
-      setTimeout(() => {
-        setGlacierStats({
-          area: "12.3 km²",
-          mean_elevation: "2345 m",
-          status: "Retreating",
-          rgi_id: selectedGlacier.rgi_id,
-        });
-        setLoadingGlacierStats(false);
-      }, 1000);
-    } else {
-      setGlacierStats(null);
-    }
   }, [selectedGlacier]);
 
   const toggleExpanded = (): void => {
@@ -287,20 +272,10 @@ export default function DataBar({
           <TabPanel value={tabValue} index={2}>
             {selectedGlacier === null ? (
               <Typography>No glacier selected.</Typography>
-            ) : loadingGlacierStats ? (
-              <Stack direction="row" alignItems="center" spacing={1}>
-                <CircularProgress size={20} />
-                <Typography>Loading glacier stats...</Typography>
-              </Stack>
-            ) : (
-              glacierStats && (
-                <Box>
-                  <Typography variant="h6">Glacier Stats</Typography>
-                  <Typography>RGI ID: {glacierStats.rgi_id}</Typography>
-                  <Typography>Area: {glacierStats.area}</Typography>
-                  <Typography>Mean Elevation: {glacierStats.mean_elevation}</Typography>
-                  <Typography>Status: {glacierStats.status}</Typography>
-                </Box>
+            ) :  ( (
+                <>
+                <StatsTable gid={selectedGlacier.gid} />
+                </>
               )
             )}
           </TabPanel>
