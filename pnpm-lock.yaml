@@ -41,6 +41,9 @@ importers:
       maplibre-gl:
         specifier: ^5.3.0
         version: 5.3.0
+      maplibre-gl-basemaps:
+        specifier: ^0.1.3
+        version: 0.1.3(maplibre-gl@5.3.0)
       material-react-table:
         specifier: ^3.2.1
         version: 3.2.1(7cff617d58430e02258f536327b0c426)
@@ -1892,6 +1895,11 @@ packages:
   loose-envify@1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
+
+  maplibre-gl-basemaps@0.1.3:
+    resolution: {integrity: sha512-7+PF7yBoPYo7hU+a81JWuikrRA757HA6YqsLgEL47syaSiwjSLicfZQk8kGlaRS3NFI7Q7fBSO3T14C8tqbQTQ==}
+    peerDependencies:
+      maplibre-gl: '>=1'
 
   maplibre-gl@5.3.0:
     resolution: {integrity: sha512-qru6B6jHlDPR4Q9/P4W1zEPbPofR4wwYbrrjiHKWI7yLtyXmpJ1/G1KaIYDr5uNdFbPZ7uiZAWdqtfdNLmIhGg==}
@@ -4359,6 +4367,10 @@ snapshots:
   loose-envify@1.4.0:
     dependencies:
       js-tokens: 4.0.0
+
+  maplibre-gl-basemaps@0.1.3(maplibre-gl@5.3.0):
+    dependencies:
+      maplibre-gl: 5.3.0
 
   maplibre-gl@5.3.0:
     dependencies:
