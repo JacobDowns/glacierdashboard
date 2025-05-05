@@ -10,7 +10,7 @@ export const colormaps: Colormap[] = [
   { name: 'inferno', interpolator: d3.interpolateInferno },
   { name: 'plasma', interpolator: d3.interpolatePlasma },
   { name: 'magma', interpolator: d3.interpolateMagma },
-  { name: 'RdBu', interpolator: d3.interpolateRdBu },
+  { name: 'rdbu', interpolator: d3.interpolateRdBu },
 ];
 
 export function getColormapInterpolator(name: string): (t: number) => string {

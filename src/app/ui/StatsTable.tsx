@@ -11,44 +11,23 @@ import {
   CircularProgress,
   Alert,
   Box,
+  Card,
+  Stack,
+  Paper
 } from '@mui/material';
 import { InlineMath } from 'react-katex';
+
 
 import type { GlacierStatsQueryResult, GlacierStat } from '@/app/types/glaciers';
 
 interface Props {
-  gid: number;
+  glacierStats: GlacierStatsQueryResult | null;
+  loading: boolean;
+  error: string | null;
 }
 
-export default function StatsTable({ gid }: Props) {
-  const [glacierStats, setGlacierStats] = useState<GlacierStatsQueryResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export default function StatsTable({ glacierStats, loading, error }: Props) {
 
-  useEffect(() => {
-    if (!gid) return;
-
-    setLoading(true);
-    setError(null);
-
-    fetch(`http://127.0.0.1:8000/glacier/${gid}`)
-      .then((res) => {
-        if (!res.ok) {
-          throw new Error(`Error ${res.status}: ${res.statusText}`);
-        }
-        return res.json();
-      })
-      .then((data: GlacierStatsQueryResult) => {
-        setGlacierStats(data);
-      })
-      .catch((err) => {
-        console.error(err);
-        setError('Failed to fetch glacier statistics.');
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, [gid]);
 
   const columns = useMemo<MRT_ColumnDef<GlacierStat>[]>(() => [
     {
@@ -134,9 +113,17 @@ export default function StatsTable({ gid }: Props) {
 
   return (
     <Box sx={{ mt: 2 }}>
+
       <Typography variant="h5" gutterBottom>
         {glacierStats.glac_name ?? 'Unnamed Glacier'} ({glacierStats.rgi_id})
       </Typography>
+
+      <Stack>
+        <Typography variant="body1"> Region : {glacierStats.o2region} </Typography>
+        <Typography variant="body1"> Latitude : {glacierStats.cenlat} </Typography>
+        <Typography variant="body1"> Longitude : {glacierStats.cenlon} </Typography>
+        <br></br>
+      </Stack>
       <MaterialReactTable table={table} />
     </Box>
   );

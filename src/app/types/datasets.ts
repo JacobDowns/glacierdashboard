@@ -17,7 +17,8 @@ export type Dataset = {
     data_type_unit: string;
     data_type_plot_min: number;
     data_type_plot_max: number;
-    datat_type_latex_unit : string;
+    data_type_latex_unit : string;
+    data_type_colormap : string;
     data_type_min_val: number;
     data_type_max_val: number;
     data_type_labels: string[];  

@@ -18,6 +18,9 @@ import { Dataset } from '@/app/types/datasets'
 import { colormaps, getColormapInterpolator } from '@/app/lib/colormaps'
 import RangeSlider from './RangeSlider'
 import ColorBar from './ColorBar'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import { InlineMath } from 'react-katex';
 
 interface Props {
   dataset: Dataset,
@@ -55,11 +58,13 @@ export default function GlacierMapLegend({
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle1">
             {dataset.data_type_name}
-            {dataset.data_type_unit ? ` (${dataset.data_type_unit})` : ''}
+            {dataset.data_type_unit ? (<> (<InlineMath math={dataset.data_type_latex_unit} />)</>) : ''}
           </Typography>
-          <IconButton size="small" onClick={() => setExpanded((prev) => !prev)}>
-            {expanded ? <CloseIcon fontSize="small" /> : <AddIcon fontSize="small" />}
-          </IconButton>
+          { isContinuous && (
+            <IconButton size="small" onClick={() => setExpanded((prev) => !prev)}>
+              {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+            </IconButton>
+          )}
         </Box>
 
         {isContinuous ? (

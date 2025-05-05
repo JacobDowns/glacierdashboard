@@ -23,10 +23,10 @@ import {
   Tab,
   CircularProgress
 } from '@mui/material';
+import type { GlacierStatsQueryResult } from '@/app/types/glaciers';
 
 import DatasetCard from '@/app/ui/DatasetCard';
 import StatsTable from '@/app/ui/StatsTable';
-import { GlacierStatsQueryResult } from "@/app/types/glaciers";
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -75,6 +75,9 @@ export default function DataBar({
   const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({});
   const [expanded, setExpanded] = useState<boolean>(false);
   const [tabValue, setTabValue] = useState(0);
+  const [glacierStats, setGlacierStats] = useState<GlacierStatsQueryResult | null>(null);
+  const [glacierStatsLoading, setGlacierStatsLoading] = useState(false);
+  const [glacierStatsError, setGlacierStatsError] = useState<string | null>(null);
 
 
   const columns = useMemo<MRT_ColumnDef<Dataset>[]>(
@@ -82,17 +85,22 @@ export default function DataBar({
       {
         header: 'Dataset Name',
         accessorKey: 'dataset_name',
+        size : 300
+      },
+      {
+        header: 'Data Type',
+        accessorKey: 'data_type_name',
       },
       {
         header: 'Format',
         accessorKey: 'dataset_format',
       },
       {
-        header: 'Start Date',
+        header: 'Start Year',
         accessorKey: 'dataset_start_date',
       },
       {
-        header: 'End Date',
+        header: 'End Year',
         accessorKey: 'dataset_end_date',
       },
       {
@@ -103,10 +111,7 @@ export default function DataBar({
         header: 'Authors',
         accessorKey: 'publication_authors',
       },
-      {
-        header: 'Data Type',
-        accessorKey: 'data_type_name',
-      },
+
     ],
     [],
   );
@@ -148,8 +153,8 @@ export default function DataBar({
     initialState: {
       density: 'comfortable',
       expanded: {},
-      grouping: ['collection_short_name'],
-      pagination: { pageIndex: 0, pageSize: 20 },
+      grouping: ['collection_short_name', 'dataset_format'],
+      pagination: { pageIndex: 0, pageSize: 100 },
     },
     muiTableBodyRowProps: ({ row }) => {
       const isSelected = selectedDataset?.id === row.original.id;
@@ -189,8 +194,31 @@ export default function DataBar({
   }, [selectedDataset, datasets]);
 
   useEffect(() => {
+    if (!selectedGlacier) return;
 
-  }, [selectedGlacier]);
+    setGlacierStats(null);
+    setGlacierStatsError(null);
+    setGlacierStatsLoading(true);
+
+    fetch(`http://127.0.0.1:8000/api/glacier/${selectedGlacier.gid}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Error ${res.status}: ${res.statusText}`);
+        }
+        return res.json();
+      })
+      .then((data: GlacierStatsQueryResult) => {
+        console.log(data);
+        setGlacierStats(data);
+      })
+      .catch((err) => {
+        console.error(err);
+        setGlacierStatsError('Failed to fetch glacier statistics.');
+      })
+      .finally(() => {
+        setGlacierStatsLoading(false);
+      });
+  }, [selectedGlacier?.gid]);
 
   const toggleExpanded = (): void => {
     setExpanded(!expanded);
@@ -225,16 +253,24 @@ export default function DataBar({
         </Stack>
         <Stack direction="row" alignItems="center" spacing={0.5}>
           <Typography variant="body1">Selected Glacier:</Typography>
-          <Link
-            component="button"
-            variant="body1"
-            onClick={() => {
-              setExpanded(true);
-              setTabValue(2);
-            }}
-          >
-            {selectedGlacier ? selectedGlacier.rgi_id : "None"}
-          </Link>
+
+          {selectedGlacier === null ? (
+            <Typography>No dataset selected.</Typography>
+          ) : ((
+
+            <Link
+              component="button"
+              variant="body1"
+              onClick={() => {
+                setExpanded(true);
+                setTabValue(2);
+              }}
+            >
+              {selectedGlacier ? selectedGlacier.rgi_id : "None"}
+            </Link>
+          )
+          )}
+
         </Stack>
         <IconButton
           onClick={toggleExpanded}
@@ -272,11 +308,12 @@ export default function DataBar({
           <TabPanel value={tabValue} index={2}>
             {selectedGlacier === null ? (
               <Typography>No glacier selected.</Typography>
-            ) :  ( (
-                <>
-                <StatsTable gid={selectedGlacier.gid} />
-                </>
-              )
+            ) : (
+              <StatsTable
+                glacierStats={glacierStats}
+                loading={glacierStatsLoading}
+                error={glacierStatsError}
+              />
             )}
           </TabPanel>
         </Box>

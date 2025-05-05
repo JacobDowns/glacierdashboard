@@ -15,7 +15,7 @@ export default function Home() {
   const [lon, setLon] = useState<number>(-149.0);
   const [zoom, setZoom] = useState<number>(6);
   const [range, setRange] = useState<[number, number] | null>(null);
-  const [colormap, setColormap] = useState<string>('viridis');
+  const [colormap, setColormap] = useState<string | null>(null);
   const [selectedGlacier, setSelectedGlacier] = useState<{ gid: number; rgi_id: string} | null>(null);
 
   const searchParams = useSearchParams();
@@ -46,7 +46,7 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/datasets");
+        const res = await fetch("http://127.0.0.1:8000/api/datasets");
         const data = await res.json();
 
         const parsedData = data.map((d: Dataset) => ({
@@ -77,18 +77,33 @@ export default function Home() {
 
   useEffect(() => {
     if (!selectedDataset) return;
-
+  
     const defaultMin = selectedDataset.data_type_plot_min ?? 0;
     const defaultMax = selectedDataset.data_type_plot_max ?? 1;
     const [minOverride, maxOverride] = firstRange.current;
-
+  
     if (minOverride !== null && maxOverride !== null) {
       setRange([minOverride, maxOverride]);
       firstRange.current = [null, null];
     } else {
       setRange([defaultMin, defaultMax]);
     }
-
+  
+    // On initial load, use colormap from URL or dataset default
+    if (initialLoad.current) {
+      const colormapParam = searchParams.get("colormap");
+      if (colormapParam) {
+        setColormap(colormapParam);
+      } else if (selectedDataset.data_type_colormap) {
+        setColormap(selectedDataset.data_type_colormap);
+      }
+    } else {
+      // On dataset change after initial load, always reset to default
+      if (selectedDataset.data_type_colormap) {
+        setColormap(selectedDataset.data_type_colormap);
+      }
+    }
+  
     initialLoad.current = false;
   }, [selectedDataset]);
 
@@ -98,7 +113,7 @@ export default function Home() {
     const newParams = new URLSearchParams(searchParams.toString());
 
     newParams.set('dataset', String(selectedDataset.id));
-    newParams.set('colormap', colormap);
+    newParams.set('colormap', colormap || 'viridis');
     newParams.set('min', range[0].toString());
     newParams.set('max', range[1].toString());
 
@@ -125,7 +140,7 @@ export default function Home() {
       {loading || !range ? (
         <CircularProgress />
       ) : (
-        selectedDataset && lat !== null && lon !== null && zoom !== null && range && (
+        selectedDataset && lat !== null && lon !== null && zoom !== null && range && colormap !== null &&(
           <div>
             <Map
               selectedDataset={selectedDataset}

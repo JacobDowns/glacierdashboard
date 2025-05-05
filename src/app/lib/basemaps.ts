@@ -39,6 +39,42 @@ const BASEMAPS: Record<string, BasemapDefinition> = {
         minzoom: 0,
         maxzoom: 16
       }
+    },
+    StamenTerrain: {
+      source: {
+        type: "raster",
+        tiles: [
+          "https://tiles.stadiamaps.com/tiles/stamen_terrain/{z}/{x}/{y}.png"
+        ],
+        tileSize: 256,
+        attribution:
+          '&copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://www.stamen.com/" target="_blank">Stamen Design</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      },
+      layer: {
+        id: "basemap",
+        type: "raster",
+        source: "StamenTerrain-source",
+        minzoom: 0,
+        maxzoom: 16
+      }
+    },
+    CartoDB: {
+      source: {
+        type: "raster",
+        tiles: [
+          "https://abcd.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+        ],
+        tileSize: 256,
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+      },
+      layer: {
+        id: "basemap",
+        type: "raster",
+        source: "CartoDB-source",
+        minzoom: 0,
+        maxzoom: 16
+      }
     }
   };
   

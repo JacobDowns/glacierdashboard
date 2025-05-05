@@ -20,6 +20,10 @@ export type GlacierStat = {
   export type GlacierStatsQueryResult = {
     rgi_id: string;
     glac_name: string | null;
+    o2region : string;
+    cenlon : number;
+    cenlat : number;
+    surge_type : number;
     stats: GlacierStat[];
   };
 

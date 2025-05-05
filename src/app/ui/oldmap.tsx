@@ -6,7 +6,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { Dataset } from "@/app/types/datasets";
 import Legend from "@/app/ui/Legend";
 import { getColormapInterpolator } from "@/app/lib/colormaps";
-import BASEMAPS from "./basemaps";
+import BASEMAPS from "../lib/basemaps";
 
 type Props = {
   selectedDataset: Dataset;

@@ -5,8 +5,9 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Dataset } from "@/app/types/datasets";
 import Legend from "@/app/ui/Legend";
-import { getColormapInterpolator } from "@/app/lib/colormaps";
-import BASEMAPS from "./basemaps";
+import { useBasemap } from "@/app/hooks/useBasemap";
+import BasemapSelector from "@/app/components/BasemapSelector";
+import { useGlacierLayer } from "@/app/hooks/useGlacierLayer";
 
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
@@ -39,127 +40,49 @@ export default function Map({
 }: Props) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const mapLoadedRef = useRef(false);
-  const [basemap, setBasemap] = useState<string>("OpenStreetMap");
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [basemap, setBasemap] = useState("OpenStreetMap");
 
-  const layerId = "glacier-layer";
-  const outlineLayerId = "selected-glacier-outline";
-  const sourceId = "glaciers";
+  useBasemap(
+    mapRef.current,
+    mapLoaded,
+    basemap
+  );
 
-  const basemapSourceId = "basemap-source";
-  const basemapsLayerId = "basemap-layer";
-
-
-  const updateGlacierLayer = () => {
-    const map = mapRef.current;
-    if (!map || !mapLoadedRef.current || !selectedDataset) return;
-
-    const interpolator = getColormapInterpolator(colormap);
-    const [min, max] = range;
-    const datasetName = `${selectedDataset.collection_short_name}_${selectedDataset.dataset_short_name}`;
-
-    const colorStops = Array.from({ length: 8 }, (_, i) => {
-      const t = i / 7;
-      const value = min + t * (max - min);
-      return [value, interpolator(t)];
-    }).flat();
-
-    const tilesUrl =
-      selectedDataset.dataset_format === "vector"
-        ? `http://127.0.0.1:8000/tiles/{z}/{x}/{y}?dataset_name=${datasetName}`
-        : `http://127.0.0.1:8000/tiles/{z}/{x}/{y}`;
-
-    if (map.getLayer(layerId)) map.removeLayer(layerId);
-    if (map.getLayer(outlineLayerId)) map.removeLayer(outlineLayerId);
-    if (map.getSource(sourceId)) map.removeSource(sourceId);
-
-    map.addSource(sourceId, {
-      type: "vector",
-      tiles: [tilesUrl],
-      minzoom: 0,
-      maxzoom: 14,
-    });
-
-    map.addLayer({
-      id: layerId,
-      type: "fill",
-      source: sourceId,
-      "source-layer": "glaciers",
-      paint:
-        selectedDataset.dataset_format === "vector"
-          ? {
-            "fill-color": [
-              "interpolate",
-              ["linear"],
-              ["to-number", ["get", "stat_value"]],
-              ...colorStops,
-            ],
-            "fill-opacity": 0.9,
-          }
-          : {
-            "fill-color": "rgba(0, 0, 0, 0)",
-            "fill-opacity": 1.0,
-            "fill-outline-color": "black",
-          },
-    });
-
-    // Outline layer added separately here
-    map.addLayer({
-      id: outlineLayerId,
-      type: "line",
-      source: sourceId,
-      "source-layer": "glaciers",
-      paint: {
-        "line-color": "red",
-        "line-width": 2,
-      },
-      filter: ["==", "gid", -1], // default: hide
-    });
-  };
-
-  const updateSelectedGlacierOutline = () => {
-    const map = mapRef.current;
-    if (!map || !mapLoadedRef.current) return;
-
-    if (!map.getLayer(outlineLayerId)) return;
-
-    if (selectedGlacier) {
-      map.setFilter(outlineLayerId, ["==", "gid", selectedGlacier.gid]);
-    } else {
-      map.setFilter(outlineLayerId, ["==", "gid", -1]); // Hide
-    }
-  };
+   useGlacierLayer(
+    mapRef,
+    mapLoaded,
+    selectedDataset,
+    colormap,
+    range,
+    selectedGlacier
+  );
 
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: MAP_STYLE,
+      style: {
+        version: 8,
+        sources: {},
+        layers: [],
+      },
       center: [lng, lat],
       zoom,
     });
 
     map.on("load", () => {
-      mapLoadedRef.current = true;
-
-      Object.entries(BASEMAPS).forEach(([key, value]) => {
-        const sourceName = `${key}-source`;
-
-        map.addSource(sourceName, value.source);
-      })
-
-      map.addLayer(BASEMAPS[basemap].layer);
-
-      updateGlacierLayer();
-      updateSelectedGlacierOutline();
+      setMapLoaded(true); 
     });
 
     map.on("click", (event) => {
       if (!selectedDataset) return;
       const features = map.queryRenderedFeatures(event.point, {
-        layers: [layerId],
+        layers: ["vector-layer"],
       });
+
+      console.log(features);
       if (features.length > 0) {
         const gid = features[0].properties?.gid;
         const rgi_id = features[0].properties?.rgi_id;
@@ -179,60 +102,14 @@ export default function Map({
     return () => {
       map.remove();
       mapRef.current = null;
-      mapLoadedRef.current = false;
+      setMapLoaded(false);
     };
   }, []);
-
-  useEffect(() => {
-    updateGlacierLayer();
-  }, [selectedDataset, colormap, range]);
-
-  useEffect(() => {
-    updateSelectedGlacierOutline();
-  }, [selectedGlacier]);
-
-
-  // Switch basemap layer when selection changes
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapLoadedRef.current) return;
-
-    // Remove all basemap layers
-    Object.values(BASEMAPS).forEach((basemapDef) => {
-      const id = basemapDef.layer.id;
-      if (map.getLayer(id)) {
-        map.removeLayer(id);
-      }
-    });
-
-    // Add the new basemap layer
-    const basemapDef = BASEMAPS[basemap];
-    if (basemapDef && !map.getLayer(basemapDef.layer.id)) {
-      map.addLayer({
-        ...basemapDef.layer,
-        source: `${basemap}-source`,
-      }, layerId); // Insert below glacier layer
-    }
-  }, [basemap]);
 
   return (
     <div className="relative">
       <div ref={mapContainerRef} style={{ width: "100vw", height: "800px" }} />
-      {/* Basemap selector */}
-      <div className="absolute top-4 left-4 z-10 bg-white border p-2">
-        <label className="text-sm mr-2">Basemap:</label>
-        <select
-          value={basemap}
-          onChange={(e) => setBasemap(e.target.value)}
-          className="text-sm border px-1"
-        >
-          {Object.keys(BASEMAPS).map((name) => (
-            <option key={name} value={name}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </div>
+      <BasemapSelector basemap={basemap} setBasemap={setBasemap} />
       <div className="absolute bottom-4 left-4 z-10">
         {selectedDataset && (
           <Legend
