@@ -42,6 +42,7 @@ export default function Map({
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [basemap, setBasemap] = useState("OpenStreetMap");
+  const [layerOpacity, setLayerOpacity] = useState(1);
 
   useBasemap(
     mapRef.current,
@@ -55,7 +56,8 @@ export default function Map({
     selectedDataset,
     colormap,
     range,
-    selectedGlacier
+    selectedGlacier,
+    layerOpacity
   );
 
   useEffect(() => {
@@ -74,6 +76,11 @@ export default function Map({
 
     map.on("load", () => {
       setMapLoaded(true); 
+
+       // Blur focus from map to prevent scroll hijacking
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
+      }
     });
 
     map.on("click", (event) => {
@@ -108,7 +115,7 @@ export default function Map({
 
   return (
     <div className="relative">
-      <div ref={mapContainerRef} style={{ width: "100vw", height: "800px" }} />
+      <div ref={mapContainerRef} style={{ width: "100vw", height: "1000px" }} />
       <BasemapSelector basemap={basemap} setBasemap={setBasemap} />
       <div className="absolute bottom-4 left-4 z-10">
         {selectedDataset && (
@@ -118,6 +125,8 @@ export default function Map({
             range={range}
             onColormapChange={setColormap}
             onRangeChange={setRange}
+            layerOpacity={layerOpacity}
+            setLayerOpacity={setLayerOpacity}
           />
         )}
       </div>

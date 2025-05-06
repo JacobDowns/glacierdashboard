@@ -11,7 +11,8 @@ export function useGlacierLayer(
   selectedDataset: Dataset,
   colormap: string,
   range: [number, number],
-  selectedGlacier: SelectedGlacier
+  selectedGlacier: SelectedGlacier,
+  layerOpacity: number
 ) {
   const vectorLayerId = "vector-layer";
   const outlineLayerId = "selected-glacier-layer";
@@ -41,7 +42,7 @@ export function useGlacierLayer(
         ? `http://127.0.0.1:8000/vector_tiles/tiles/{z}/{x}/{y}`
         : `http://127.0.0.1:8000/vector_tiles/tiles/{z}/{x}/{y}?dataset_name=${datasetName}`;
 
-    const rasterTilesUrl = `http://localhost:8000/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@1x?url=https://glacierdashboard.s3.us-east-2.amazonaws.com/cogs/${selectedDataset.collection_short_name}/${selectedDataset.dataset_short_name}/mosaic.json&rescale=${min},${max}&colormap_name=${colormap}&format=png&unscale=true`;
+    const rasterTilesUrl = `http://localhost:8000/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@2x?url=https://glacierdashboard.s3.us-east-2.amazonaws.com/cogs/${selectedDataset.collection_short_name}/${selectedDataset.dataset_short_name}/mosaic.json&rescale=${min},${max}&colormap_name=${colormap}&format=png&unscale=true`;
 
     // Clean up previous layers/sources
     if (map.getLayer(vectorLayerId)) map.removeLayer(vectorLayerId);
@@ -62,6 +63,9 @@ export function useGlacierLayer(
         id: rasterLayerId,
         type: "raster",
         source: rasterSourceId,
+        paint: {
+          'raster-opacity': layerOpacity
+        }
       });
     }
 
@@ -90,7 +94,7 @@ export function useGlacierLayer(
               ["to-number", ["get", "stat_value"]],
               ...colorStops,
             ],
-            "fill-opacity": 0.9,
+            "fill-opacity": layerOpacity,
           },
     });
 
@@ -106,7 +110,7 @@ export function useGlacierLayer(
       filter: ["==", "gid", -1], // default hidden
     });
 
-  }, [mapLoaded, mapRef, selectedDataset, colormap, range]);
+  }, [mapLoaded, mapRef, selectedDataset, colormap, range, layerOpacity]);
 
   // Update outline filter when glacier selection changes
   useEffect(() => {

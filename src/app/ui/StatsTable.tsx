@@ -13,12 +13,14 @@ import {
   Box,
   Card,
   Stack,
-  Paper
+  Paper,
+  Divider
 } from '@mui/material';
 import { InlineMath } from 'react-katex';
 
 
 import type { GlacierStatsQueryResult, GlacierStat } from '@/app/types/glaciers';
+import { ST } from 'next/dist/shared/lib/utils';
 
 interface Props {
   glacierStats: GlacierStatsQueryResult | null;
@@ -28,6 +30,7 @@ interface Props {
 
 export default function StatsTable({ glacierStats, loading, error }: Props) {
 
+  
 
   const columns = useMemo<MRT_ColumnDef<GlacierStat>[]>(() => [
     {
@@ -72,7 +75,14 @@ export default function StatsTable({ glacierStats, loading, error }: Props) {
     {
       header: 'Value',
       accessorKey: 'value',
-      Cell: ({ cell }) => cell.getValue<number>().toFixed(3),
+      Cell: ({ cell }) => {
+        const val = cell.getValue<number | null>();
+        return val === null || val === undefined ? (
+          <span style={{ fontStyle: 'italic', color: '#888' }}>No Data</span>
+        ) : (
+          val.toFixed(3)
+        );
+      },
     },
   ], []);
 
@@ -82,6 +92,7 @@ export default function StatsTable({ glacierStats, loading, error }: Props) {
     getRowId: (row) => row.id.toString(),
     enableGrouping: true,
     initialState: {
+      density : 'compact',
       grouping: ['collection_name'],
       expanded: true,
       columnVisibility: { dataset_start_date: false, dataset_end_date :false },
@@ -114,16 +125,23 @@ export default function StatsTable({ glacierStats, loading, error }: Props) {
   return (
     <Box sx={{ mt: 2 }}>
 
-      <Typography variant="h5" gutterBottom>
+    
+
+      <Card elevation={3} sx={{ padding: 2 }}>
+      <Typography variant="h6" gutterBottom>
         {glacierStats.glac_name ?? 'Unnamed Glacier'} ({glacierStats.rgi_id})
       </Typography>
-
-      <Stack>
+      <Divider />
+        <Stack spacing={0.5}>
         <Typography variant="body1"> Region : {glacierStats.o2region} </Typography>
-        <Typography variant="body1"> Latitude : {glacierStats.cenlat} </Typography>
-        <Typography variant="body1"> Longitude : {glacierStats.cenlon} </Typography>
-        <br></br>
+        <Typography variant="body1"> Latitude : {glacierStats.cenlat.toFixed(4)} </Typography>
+        <Typography variant="body1"> Longitude : {glacierStats.cenlon.toFixed(4)} </Typography>
       </Stack>
+      </Card>
+      <br></br>
+      <Typography variant="h6" gutterBottom>
+        Glacier Statistics
+      </Typography>
       <MaterialReactTable table={table} />
     </Box>
   );

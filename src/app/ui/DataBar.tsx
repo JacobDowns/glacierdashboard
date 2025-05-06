@@ -2,13 +2,6 @@
 
 import { useState, useMemo, useEffect } from "react";
 import { Dataset } from "@/app/types/datasets";
-import {
-  MaterialReactTable,
-  useMaterialReactTable,
-  type MRT_ColumnDef,
-  MRT_ExpandAllButton,
-  type MRT_RowSelectionState
-} from 'material-react-table';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import {
@@ -21,12 +14,16 @@ import {
   Collapse,
   Tabs,
   Tab,
-  CircularProgress
+  Button
 } from '@mui/material';
 import type { GlacierStatsQueryResult } from '@/app/types/glaciers';
-
+import DatasetsTable from '@/app/ui/DatasetsTable';
 import DatasetCard from '@/app/ui/DatasetCard';
+import GlacierSearch from '@/app/components/GlacierSearch';
 import StatsTable from '@/app/ui/StatsTable';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+import Article from '@mui/icons-material/Article';
+import LandscapeIcon from '@mui/icons-material/Landscape';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -72,7 +69,6 @@ export default function DataBar({
   selectedGlacier,
   setSelectedGlacier,
 }: Props) {
-  const [rowSelection, setRowSelection] = useState<MRT_RowSelectionState>({});
   const [expanded, setExpanded] = useState<boolean>(false);
   const [tabValue, setTabValue] = useState(0);
   const [glacierStats, setGlacierStats] = useState<GlacierStatsQueryResult | null>(null);
@@ -80,118 +76,11 @@ export default function DataBar({
   const [glacierStatsError, setGlacierStatsError] = useState<string | null>(null);
 
 
-  const columns = useMemo<MRT_ColumnDef<Dataset>[]>(
-    () => [
-      {
-        header: 'Dataset Name',
-        accessorKey: 'dataset_name',
-        size : 300
-      },
-      {
-        header: 'Data Type',
-        accessorKey: 'data_type_name',
-      },
-      {
-        header: 'Format',
-        accessorKey: 'dataset_format',
-      },
-      {
-        header: 'Start Year',
-        accessorKey: 'dataset_start_date',
-      },
-      {
-        header: 'End Year',
-        accessorKey: 'dataset_end_date',
-      },
-      {
-        header: 'Collection',
-        accessorKey: 'collection_short_name',
-      },
-      {
-        header: 'Authors',
-        accessorKey: 'publication_authors',
-      },
 
-    ],
-    [],
-  );
-
-  const table = useMaterialReactTable<Dataset>({
-    columns,
-    data: datasets,
-    getRowId: (row) => row.id.toString(),
-    displayColumnDefOptions: {
-      'mrt-row-expand': {
-        Header: () => (
-          <Stack direction="row" alignItems="center">
-            <MRT_ExpandAllButton table={table} />
-            <Box>Groups</Box>
-          </Stack>
-        ),
-        GroupedCell: ({ row, table }) => {
-          const { grouping } = table.getState();
-          return row.getValue(grouping[grouping.length - 1]);
-        },
-        enableResizing: true,
-        muiTableBodyCellProps: ({ row }) => ({
-          sx: (theme) => ({
-            color:
-              row.depth === 0
-                ? theme.palette.primary.main
-                : row.depth === 1
-                  ? theme.palette.secondary.main
-                  : undefined,
-          }),
-        }),
-        size: 200,
-      },
-    },
-    enableRowSelection: false,
-    enableGrouping: true,
-    enableColumnResizing: true,
-    groupedColumnMode: 'remove',
-    initialState: {
-      density: 'comfortable',
-      expanded: {},
-      grouping: ['collection_short_name', 'dataset_format'],
-      pagination: { pageIndex: 0, pageSize: 100 },
-    },
-    muiTableBodyRowProps: ({ row }) => {
-      const isSelected = selectedDataset?.id === row.original.id;
-      const isGroupRow = row.getIsGrouped();
-
-      return {
-        onClick: isGroupRow
-          ? row.getToggleExpandedHandler()
-          : () => setSelectedDataset(row.original),
-        sx: {
-          cursor: 'pointer',
-          backgroundColor: isSelected
-            ? '#e3f2fd'
-            : isGroupRow
-              ? '#eee'
-              : 'inherit',
-          border: isGroupRow ? '1px solid #aaa' : undefined,
-          borderRadius: isGroupRow ? '1px' : undefined,
-          mx: isGroupRow ? 1 : 0,
-        },
-      };
-    },
-    positionToolbarAlertBanner: 'none',
-  });
 
   const handleChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
-
-  useEffect(() => {
-    if (selectedDataset) {
-      const index = datasets.findIndex(d => d.id === selectedDataset.id);
-      if (index !== -1) {
-        setRowSelection({ [index]: true });
-      }
-    }
-  }, [selectedDataset, datasets]);
 
   useEffect(() => {
     if (!selectedGlacier) return;
@@ -239,37 +128,35 @@ export default function DataBar({
         }}
       >
         <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Typography variant="body1">Selected Dataset:</Typography>
-          <Link
-            component="button"
-            variant="body1"
+          <Button variant="outlined" startIcon={<ArrowDropDownIcon />} onClick={() => {
+            setExpanded(true);
+            setTabValue(0);
+          }}>
+            Select Dataset
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Article />}
             onClick={() => {
               setExpanded(true);
               setTabValue(1);
             }}
           >
             {selectedDataset?.collection_name} / {selectedDataset?.dataset_name}
-          </Link>
-        </Stack>
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Typography variant="body1">Selected Glacier:</Typography>
+          </Button>
 
-          {selectedGlacier === null ? (
-            <Typography>No dataset selected.</Typography>
-          ) : ((
 
-            <Link
-              component="button"
-              variant="body1"
-              onClick={() => {
-                setExpanded(true);
-                setTabValue(2);
-              }}
-            >
-              {selectedGlacier ? selectedGlacier.rgi_id : "None"}
-            </Link>
-          )
-          )}
+          <Button
+            component="button"
+            variant="outlined"
+            startIcon={<LandscapeIcon />}
+            onClick={() => {
+              setExpanded(true);
+              setTabValue(2);
+            }}
+          >
+            Selected Glacier: {selectedGlacier ? selectedGlacier.rgi_id : "None"}
+          </Button>
 
         </Stack>
         <IconButton
@@ -298,7 +185,11 @@ export default function DataBar({
           </Box>
 
           <TabPanel value={tabValue} index={0}>
-            <MaterialReactTable table={table} />
+            <DatasetsTable
+              datasets={datasets}
+              selectedDataset={selectedDataset}
+              setSelectedDataset={setSelectedDataset}
+            />
           </TabPanel>
 
           <TabPanel value={tabValue} index={1}>
@@ -306,6 +197,7 @@ export default function DataBar({
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
+            <GlacierSearch />
             {selectedGlacier === null ? (
               <Typography>No glacier selected.</Typography>
             ) : (

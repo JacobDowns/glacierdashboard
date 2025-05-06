@@ -11,9 +11,9 @@ export default function Home() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lat, setLat] = useState<number>(61.0);
-  const [lon, setLon] = useState<number>(-149.0);
-  const [zoom, setZoom] = useState<number>(6);
+  const [lat, setLat] = useState<number>(62.0);
+  const [lon, setLon] = useState<number>(-157.0);
+  const [zoom, setZoom] = useState<number>(3.5);
   const [range, setRange] = useState<[number, number] | null>(null);
   const [colormap, setColormap] = useState<string | null>(null);
   const [selectedGlacier, setSelectedGlacier] = useState<{ gid: number; rgi_id: string} | null>(null);
@@ -125,7 +125,7 @@ export default function Home() {
     const currentUrl = searchParams.toString();
     const newUrl = newParams.toString();
     if (currentUrl !== newUrl) {
-      router.replace(`?${newUrl}`);
+      router.replace(`?${newUrl}`, { scroll: false });
     }
   }, [selectedDataset, colormap, range, lat, lon, zoom]);
 

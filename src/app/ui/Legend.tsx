@@ -10,24 +10,25 @@ import {
   Select,
   MenuItem,
   FormControl,
+  Slider
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import CloseIcon from '@mui/icons-material/Close'
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import * as d3 from 'd3'
 import { Dataset } from '@/app/types/datasets'
 import { colormaps, getColormapInterpolator } from '@/app/lib/colormaps'
 import RangeSlider from './RangeSlider'
 import ColorBar from './ColorBar'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import ExpandLessIcon from '@mui/icons-material/ExpandLess';
-import { InlineMath } from 'react-katex';
+import { InlineMath } from 'react-katex'
 
 interface Props {
   dataset: Dataset,
   colormap: string,
   range: [number, number],
   onColormapChange: (colormap: string) => void,
-  onRangeChange: (range: [number, number]) => void
+  onRangeChange: (range: [number, number]) => void,
+  layerOpacity: number,
+  setLayerOpacity: (opacity: number) => void
 }
 
 export default function GlacierMapLegend({
@@ -36,19 +37,13 @@ export default function GlacierMapLegend({
   range,
   onColormapChange,
   onRangeChange,
+  layerOpacity,
+  setLayerOpacity
 }: Props) {
   const [expanded, setExpanded] = useState(false)
 
   const isContinuous = dataset?.data_type_type === 'continuous'
-
   const selectedInterpolator = getColormapInterpolator(colormap)
-
-  // Update range if dataset changes
-  useEffect(() => {
-    if (!dataset) return
-
-    console.log('here');
-  }, [range])
 
   if (!dataset) return null
 
@@ -60,50 +55,21 @@ export default function GlacierMapLegend({
             {dataset.data_type_name}
             {dataset.data_type_unit ? (<> (<InlineMath math={dataset.data_type_latex_unit} />)</>) : ''}
           </Typography>
-          { isContinuous && (
-            <IconButton size="small" onClick={() => setExpanded((prev) => !prev)}>
-              {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-            </IconButton>
-          )}
+          <IconButton size="small" onClick={() => setExpanded((prev) => !prev)}>
+            {expanded ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
+          </IconButton>
         </Box>
 
         {isContinuous ? (
-          <>
-            <ColorBar
-              label=""
-              min={range[0]}
-              max={range[1]}
-              tickCount={4}
-              width={280}
-              height={50}
-              colormap={selectedInterpolator}
-            />
-            <Collapse in={expanded}>
-              <Box mt={2}>
-                <Typography variant="body2">Range</Typography>
-                <RangeSlider
-                  selectedDataset={dataset}
-                  value={range}
-                  onChange={onRangeChange}
-                />
-                <Typography variant="body2" mt={2}>
-                  Colormap
-                </Typography>
-                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
-                  <Select
-                    value={colormap}
-                    onChange={(e) => onColormapChange(e.target.value)}
-                  >
-                    {colormaps.map((c : any) => (
-                      <MenuItem key={c.name} value={c.name}>
-                        {c.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            </Collapse>
-          </>
+          <ColorBar
+            label=""
+            min={range[0]}
+            max={range[1]}
+            tickCount={4}
+            width={280}
+            height={50}
+            colormap={selectedInterpolator}
+          />
         ) : (
           <Box mt={1}>
             {dataset.data_type_categories.map((cat, i) => {
@@ -126,6 +92,50 @@ export default function GlacierMapLegend({
             })}
           </Box>
         )}
+
+        <Collapse in={expanded}>
+          <Box mt={2}>
+            {isContinuous && (
+              <>
+                <Typography variant="body2">Range</Typography>
+                <RangeSlider
+                  selectedDataset={dataset}
+                  value={range}
+                  onChange={onRangeChange}
+                />
+                <Typography variant="body2" mt={2}>Colormap</Typography>
+                <FormControl fullWidth size="small" sx={{ mt: 1 }}>
+                  <Select
+                    value={colormap}
+                    onChange={(e) => onColormapChange(e.target.value)}
+                  >
+                    {colormaps.map((c: any) => (
+                      <MenuItem key={c.name} value={c.name}>
+                        {c.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </>
+            )}
+            <Typography variant="body2" mt={2}>Opacity</Typography>
+            <FormControl fullWidth size="small" sx={{ mt: 1, px: 1 }}>
+              <Slider
+                value={layerOpacity}
+                onChange={(_, value) => {
+                  if (typeof value === 'number') {
+                    setLayerOpacity(value)
+                  }
+                }}
+                valueLabelDisplay="auto"
+                step={0.1}
+                marks
+                min={0}
+                max={1}
+              />
+            </FormControl>
+          </Box>
+        </Collapse>
       </Card>
     </Box>
   )
