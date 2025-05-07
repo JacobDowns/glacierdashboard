@@ -7,10 +7,11 @@ interface Glacier {
   gid: number;
   glac_name: string;
   rgi_id: string;
+  center_lat: number;
+  center_lon: number;
 }
 
-
-export default function GlacierAutocomplete() {
+export default function GlacierAutocomplete({ onSelectGlacier }: { onSelectGlacier: (glacier: Glacier | null) => void }) {
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<Glacier[]>([]);
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,7 @@ export default function GlacierAutocomplete() {
       }
     };
 
-    const timeout = setTimeout(fetchSuggestions, 250); // debounce
+    const timeout = setTimeout(fetchSuggestions, 0); // debounce
     return () => clearTimeout(timeout);
   }, [inputValue]);
 
@@ -45,7 +46,7 @@ export default function GlacierAutocomplete() {
       getOptionLabel={(option) => `${option.glac_name} (${option.rgi_id})`}
       filterSelectedOptions
       onChange={(event, newValue) => {
-        console.log(newValue);
+        onSelectGlacier(newValue);  // Notify parent
       }}
       inputValue={inputValue}
       onInputChange={(event, newInputValue) => {
@@ -54,6 +55,7 @@ export default function GlacierAutocomplete() {
       loading={loading}
       renderInput={(params) => (
         <TextField
+        sx = {{width: 500}}
           {...params}
           label="Glacier Search"
           slotProps={{

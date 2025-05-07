@@ -127,11 +127,15 @@ export default function DataBar({
           borderColor: 'divider',
         }}
       >
-        <Stack direction="row" alignItems="center" spacing={0.5}>
-          <Button variant="outlined" startIcon={<ArrowDropDownIcon />} onClick={() => {
-            setExpanded(true);
-            setTabValue(0);
-          }}>
+        <Stack direction="row" alignItems="center" spacing={1}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowDropDownIcon />}
+            onClick={() => {
+              setExpanded(true);
+              setTabValue(0);
+            }}
+            size="large">
             Select Dataset
           </Button>
           <Button
@@ -141,6 +145,7 @@ export default function DataBar({
               setExpanded(true);
               setTabValue(1);
             }}
+            size="large"
           >
             {selectedDataset?.collection_name} / {selectedDataset?.dataset_name}
           </Button>
@@ -154,19 +159,25 @@ export default function DataBar({
               setExpanded(true);
               setTabValue(2);
             }}
+            size="large"
           >
             Selected Glacier: {selectedGlacier ? selectedGlacier.rgi_id : "None"}
           </Button>
-
         </Stack>
-        <IconButton
-          onClick={toggleExpanded}
-          size="small"
-          aria-expanded={expanded}
-          aria-label="show details"
-        >
-          {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </IconButton>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto'}}>
+          <GlacierSearch />
+          <IconButton
+            onClick={toggleExpanded}
+            size="small"
+            aria-expanded={expanded}
+            aria-label="show details"
+            sx = {{ ml: 5 }}
+          >
+            {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+          </IconButton>
+        </Box>
+
       </Box>
 
       {/* Collapsible content */}
@@ -197,7 +208,7 @@ export default function DataBar({
           </TabPanel>
 
           <TabPanel value={tabValue} index={2}>
-            <GlacierSearch />
+
             {selectedGlacier === null ? (
               <Typography>No glacier selected.</Typography>
             ) : (
