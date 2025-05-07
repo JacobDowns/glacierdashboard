@@ -9,8 +9,7 @@ import {
   type MRT_RowSelectionState
 } from 'material-react-table';
 import {
-  CircularProgress,
-  Alert,
+  Typography,
   Box
 } from '@mui/material';
 
@@ -29,6 +28,11 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
 
     const columns = useMemo<MRT_ColumnDef<Dataset>[]>(
         () => [
+          {
+            header: 'Collection',
+            accessorKey: 'collection_name',
+            size : 250
+          },
           {
             header: 'Dataset Name',
             accessorKey: 'dataset_name',
@@ -50,11 +54,7 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
             header: 'End Year',
             accessorKey: 'dataset_end_date',
           },
-          {
-            header: 'Collection',
-            accessorKey: 'collection_name',
-            size : 250
-          },
+      
           {
             header: 'Authors',
             accessorKey: 'publication_authors',
@@ -72,7 +72,7 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
     enableGrouping: true,
     initialState: {
       density : 'compact',
-      grouping: ['dataset_format', 'collection_name'],
+      grouping: ['collection_name'],
       expanded: true,
       pagination: { pageSize: 50, pageIndex: 0 }
     },
@@ -127,8 +127,11 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
   if (!datasets) return null;
 
   return (
+    <>
+    <Typography variant="h6">Available Datasets</Typography>
     <Box sx={{ mt: 2 }}>
         <MaterialReactTable table={table} />
     </Box>
+    </>
   );
 }

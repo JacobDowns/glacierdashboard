@@ -24,6 +24,7 @@ import StatsTable from '@/app/ui/StatsTable';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import Article from '@mui/icons-material/Article';
 import LandscapeIcon from '@mui/icons-material/Landscape';
+import MapIcon from '@mui/icons-material/Map';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -60,6 +61,7 @@ type Props = {
   setSelectedDataset: (dataset: Dataset | null) => void;
   selectedGlacier: { gid: number; rgi_id: string } | null;
   setSelectedGlacier: (glacier: { gid: number; rgi_id: string } | null) => void;
+  onNavigateToGlacier: ({ cenlat, cenlng }: { cenlat: number; cenlng: number }) => void;
 };
 
 export default function DataBar({
@@ -68,6 +70,7 @@ export default function DataBar({
   setSelectedDataset,
   selectedGlacier,
   setSelectedGlacier,
+  onNavigateToGlacier
 }: Props) {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [tabValue, setTabValue] = useState(0);
@@ -136,7 +139,7 @@ export default function DataBar({
               setTabValue(0);
             }}
             size="large">
-            Select Dataset
+            Datasets
           </Button>
           <Button
             variant="outlined"
@@ -165,14 +168,19 @@ export default function DataBar({
           </Button>
         </Stack>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto'}}>
-          <GlacierSearch />
+        <Box sx={{ display: 'flex', alignItems: 'center', ml: 'auto' }}>
+          <GlacierSearch
+            onNavigateToGlacier={(cenlat, cenlng) => {
+              // Call the fly-to function you passed down
+              onNavigateToGlacier({ cenlat, cenlng });
+            }}
+          />
           <IconButton
             onClick={toggleExpanded}
             size="small"
             aria-expanded={expanded}
             aria-label="show details"
-            sx = {{ ml: 5 }}
+            sx={{ ml: 2 }}
           >
             {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
           </IconButton>

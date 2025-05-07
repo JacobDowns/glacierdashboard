@@ -24,6 +24,7 @@ export type GlacierStat = {
     cenlon : number;
     cenlat : number;
     surge_type : number;
+    rgi_area : number;
     stats: GlacierStat[];
   };
 

@@ -131,11 +131,13 @@ export default function StatsTable({ glacierStats, loading, error }: Props) {
       <Typography variant="h6" gutterBottom>
         {glacierStats.glac_name ?? 'Unnamed Glacier'} ({glacierStats.rgi_id})
       </Typography>
-      <Divider />
-        <Stack spacing={0.5}>
-        <Typography variant="body1"> Region : {glacierStats.o2region} </Typography>
-        <Typography variant="body1"> Latitude : {glacierStats.cenlat.toFixed(4)} </Typography>
-        <Typography variant="body1"> Longitude : {glacierStats.cenlon.toFixed(4)} </Typography>
+      <Divider sx={{ mb :2 }}/>
+        <Stack spacing={0.6}>
+        <Typography variant="body1"> <b>Region: </b> {glacierStats.o2region} </Typography>
+        <Typography variant="body1"><b>Latitude: </b> {glacierStats.cenlat.toFixed(4)} </Typography>
+        <Typography variant="body1"><b>Longitude :</b> {glacierStats.cenlon.toFixed(4)} </Typography>
+        <Typography variant="body1"><b>Area :</b> {glacierStats.rgi_area.toFixed(3)} km<sup>2</sup> </Typography>
+        <Typography variant="body1"><b>Surge Type :</b> {glacierStats.surge_type ? 'Yes' : 'No'} </Typography>
       </Stack>
       </Card>
       <br></br>

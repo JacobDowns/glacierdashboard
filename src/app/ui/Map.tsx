@@ -12,6 +12,8 @@ import { useGlacierLayer } from "@/app/hooks/useGlacierLayer";
 const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 type Props = {
+  mapRef : React.RefObject<maplibregl.Map | null>;
+  mapContainerRef : React.RefObject<HTMLDivElement | null>;
   selectedDataset: Dataset;
   lat: number;
   lng: number;
@@ -26,6 +28,8 @@ type Props = {
 };
 
 export default function Map({
+  mapRef,
+  mapContainerRef,
   selectedDataset,
   lat,
   lng,
@@ -38,8 +42,7 @@ export default function Map({
   selectedGlacier,
   setSelectedGlacier,
 }: Props) {
-  const mapContainerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
+
   const [mapLoaded, setMapLoaded] = useState(false);
   const [basemap, setBasemap] = useState("OpenStreetMap");
   const [layerOpacity, setLayerOpacity] = useState(1);
@@ -112,6 +115,17 @@ export default function Map({
       setMapLoaded(false);
     };
   }, []);
+
+  
+const flyToLocation = ({ center_lat, center_lon }: { center_lat: number; center_lon: number }) => {
+  if (mapRef.current) {
+    mapRef.current.flyTo({
+      center: [center_lon, center_lat],
+      zoom: 12,
+      essential: true,
+    });
+  }
+};
 
   return (
     <div className="relative">

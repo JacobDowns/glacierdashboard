@@ -1,61 +1,85 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Autocomplete, TextField, CircularProgress } from '@mui/material';
 
 interface Glacier {
   gid: number;
   glac_name: string;
   rgi_id: string;
-  center_lat: number;
-  center_lon: number;
+  cenlat: number;
+  cenlon: number;
 }
 
-export default function GlacierAutocomplete({ onSelectGlacier }: { onSelectGlacier: (glacier: Glacier | null) => void }) {
+export default function GlacierSearch({
+  onNavigateToGlacier,
+}: {
+  onNavigateToGlacier: (lat: number, lon: number) => void;
+}) {
   const [inputValue, setInputValue] = useState('');
   const [options, setOptions] = useState<Glacier[]>([]);
   const [loading, setLoading] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (inputValue.length < 2) {
-        setOptions([]);
-        return;
+    if (inputValue.length < 4) {
+      setOptions([]);
+      setLoading(false);
+      return;
+    }
+  
+    setLoading(true);
+  
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+  
+    debounceRef.current = setTimeout(() => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
-
-      setLoading(true);
-      try {
-        const res = await fetch(`http://0.0.0.0:8000/search/search?q=${encodeURIComponent(inputValue)}`);
-        const data = await res.json();
-        console.log(data);
-        setOptions(data);
-      } catch (error) {
-        console.error('Failed to fetch glacier suggestions', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const timeout = setTimeout(fetchSuggestions, 0); // debounce
-    return () => clearTimeout(timeout);
+  
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      console.log('fetching')
+      fetch(`http://localhost:8000/search/search?q=${encodeURIComponent(inputValue)}`, {
+        signal: controller.signal,
+      })
+        .then((res) => res.json())
+        .then((data) => setOptions(data))
+        .catch((err) => {
+          if (err.name !== 'AbortError') {
+            console.error('Fetch error:', err);
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setLoading(false);
+          }
+        });
+    }, 100); // debounce delay
   }, [inputValue]);
 
   return (
     <Autocomplete
       options={options}
-      getOptionLabel={(option) => `${option.glac_name} (${option.rgi_id})`}
+      getOptionLabel={(option) => `${option.glac_name || 'Unnamed glacier'} (${option.rgi_id})`}
       filterSelectedOptions
+      loading={loading}
+      noOptionsText={inputValue.length < 4 ? 'Type at least 4 characters' : 'No matching glaciers'}
       onChange={(event, newValue) => {
-        onSelectGlacier(newValue);  // Notify parent
+        if (newValue) {
+          onNavigateToGlacier(newValue.cenlat, newValue.cenlon);
+        }
       }}
       inputValue={inputValue}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
       }}
-      loading={loading}
       renderInput={(params) => (
         <TextField
-        sx = {{width: 500}}
+          sx={{ width: 400 }}
           {...params}
           label="Glacier Search"
           slotProps={{

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CircularProgress } from '@mui/material';
+import { CircularProgress, Stack } from '@mui/material';
 import DataBar from '@/app/ui/DataBar';
 import Map from '@/app/ui/Map';
 import { Dataset } from "@/app/types/datasets";
@@ -17,6 +17,8 @@ export default function Home() {
   const [range, setRange] = useState<[number, number] | null>(null);
   const [colormap, setColormap] = useState<string | null>(null);
   const [selectedGlacier, setSelectedGlacier] = useState<{ gid: number; rgi_id: string} | null>(null);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<maplibregl.Map | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -135,14 +137,26 @@ export default function Home() {
     setZoom(newZoom);
   };
 
+  const flyToGlacier = ({ cenlat, cenlng }: { cenlat: number; cenlng: number }) => {
+    if (mapRef.current) {
+      mapRef.current.flyTo({
+        center: [cenlng, cenlat],
+        zoom: 12,
+        essential: true,
+      });
+    }
+  };
+
   return (
-    <div style={{ width: '100vw'}}>
+    <div style={{ minWidth: '1400px', width: '100%' }}>
       {loading || !range ? (
         <CircularProgress />
       ) : (
         selectedDataset && lat !== null && lon !== null && zoom !== null && range && colormap !== null &&(
           <div>
             <Map
+              mapRef={mapRef}
+              mapContainerRef={mapContainerRef}
               selectedDataset={selectedDataset}
               lat={lat}
               lng={lon}
@@ -156,6 +170,7 @@ export default function Home() {
               setSelectedGlacier={setSelectedGlacier}
             />
             <DataBar 
+            onNavigateToGlacier={flyToGlacier}
             datasets={datasets} 
             selectedDataset={selectedDataset} 
             setSelectedDataset={setSelectedDataset} 

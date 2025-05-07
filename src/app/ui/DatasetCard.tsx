@@ -39,7 +39,7 @@ function DatasetCard({selectedDataset}: Props) {
             <b>Format:</b> {selectedDataset?.dataset_format} 
         </Typography>
         <Typography variant="body1">
-            <b>Range:</b> {selectedDataset?.dataset_start_date} - {selectedDataset?.dataset_end_date} 
+            <b>Time Span:</b> {selectedDataset?.dataset_start_date} - {selectedDataset?.dataset_end_date} 
         </Typography>
        </Card>
     </Grid>
