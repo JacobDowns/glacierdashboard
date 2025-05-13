@@ -5,7 +5,6 @@ import {
   MaterialReactTable,
   useMaterialReactTable,
   type MRT_ColumnDef,
-  MRT_ExpandAllButton,
   type MRT_RowSelectionState
 } from 'material-react-table';
 import {

@@ -4,7 +4,7 @@ import { CircularProgress } from "@mui/material";
 import DataBar from "@/app/ui/DataBar";
 import Map from "@/app/ui/Map";
 import { Dataset } from "@/app/types/datasets";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -16,32 +16,36 @@ export default function Home() {
   const [range, setRange] = useState<[number, number] | null>(null);
   const [colormap, setColormap] = useState<string | null>(null);
   const [selectedGlacier, setSelectedGlacier] = useState<{ gid: number; rgi_id: string } | null>(null);
+  const [searchParamsState, setSearchParamsState] = useState<URLSearchParams | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
-  const searchParams = useSearchParams();
   const router = useRouter();
   const initialLoad = useRef(true);
   const firstRange = useRef<[number | null, number | null]>([null, null]);
 
+  // Hydrate search params after mount
   useEffect(() => {
-    if (!initialLoad.current) return;
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      setSearchParamsState(params);
 
-    const latParam = searchParams.get("lat");
-    const lonParam = searchParams.get("lon");
-    const zoomParam = searchParams.get("zoom");
-    const colormapParam = searchParams.get("colormap");
-    const minParam = searchParams.get("min");
-    const maxParam = searchParams.get("max");
+      const latParam = params.get("lat");
+      const lonParam = params.get("lon");
+      const zoomParam = params.get("zoom");
+      const colormapParam = params.get("colormap");
+      const minParam = params.get("min");
+      const maxParam = params.get("max");
 
-    if (latParam) setLat(parseFloat(latParam));
-    if (lonParam) setLon(parseFloat(lonParam));
-    if (zoomParam) setZoom(parseInt(zoomParam, 10));
-    if (colormapParam) setColormap(colormapParam);
+      if (latParam) setLat(parseFloat(latParam));
+      if (lonParam) setLon(parseFloat(lonParam));
+      if (zoomParam) setZoom(parseFloat(zoomParam));
+      if (colormapParam) setColormap(colormapParam);
 
-    const min = minParam ? parseFloat(minParam) : null;
-    const max = maxParam ? parseFloat(maxParam) : null;
-    firstRange.current = [min, max];
+      const min = minParam ? parseFloat(minParam) : null;
+      const max = maxParam ? parseFloat(maxParam) : null;
+      firstRange.current = [min, max];
+    }
   }, []);
 
   useEffect(() => {
@@ -59,7 +63,7 @@ export default function Home() {
 
         setDatasets(parsedData);
 
-        const idFromParam = searchParams.get("dataset") ? parseInt(searchParams.get("dataset")!, 10) : null;
+        const idFromParam = searchParamsState?.get("dataset") ? parseInt(searchParamsState.get("dataset")!, 10) : null;
         const matchedDataset = parsedData.find((d: Dataset) => d.id === idFromParam);
 
         if (matchedDataset) {
@@ -74,8 +78,10 @@ export default function Home() {
       }
     }
 
-    fetchData();
-  }, []);
+    if (searchParamsState) {
+      fetchData();
+    }
+  }, [searchParamsState]);
 
   useEffect(() => {
     if (!selectedDataset) return;
@@ -91,28 +97,26 @@ export default function Home() {
       setRange([defaultMin, defaultMax]);
     }
 
-    // On initial load, use colormap from URL or dataset default
     if (initialLoad.current) {
-      const colormapParam = searchParams.get("colormap");
+      const colormapParam = searchParamsState?.get("colormap");
       if (colormapParam) {
         setColormap(colormapParam);
       } else if (selectedDataset.data_type_colormap) {
         setColormap(selectedDataset.data_type_colormap);
       }
     } else {
-      // On dataset change after initial load, always reset to default
       if (selectedDataset.data_type_colormap) {
         setColormap(selectedDataset.data_type_colormap);
       }
     }
 
     initialLoad.current = false;
-  }, [selectedDataset]);
+  }, [selectedDataset, searchParamsState]);
 
   useEffect(() => {
     if (!selectedDataset || !range) return;
 
-    const newParams = new URLSearchParams(searchParams.toString());
+    const newParams = new URLSearchParams(searchParamsState?.toString() || "");
 
     newParams.set("dataset", String(selectedDataset.id));
     newParams.set("colormap", colormap || "viridis");
@@ -124,8 +128,9 @@ export default function Home() {
     if (lon !== null) newParams.set("lon", round4(lon).toString());
     if (zoom !== null) newParams.set("zoom", round4(zoom).toString());
 
-    const currentUrl = searchParams.toString();
+    const currentUrl = searchParamsState?.toString() || "";
     const newUrl = newParams.toString();
+
     if (currentUrl !== newUrl) {
       router.replace(`?${newUrl}`, { scroll: false });
     }
@@ -160,30 +165,30 @@ export default function Home() {
           range &&
           colormap !== null && (
             <Suspense fallback={<CircularProgress />}>
-            <div>
-              <Map
-                mapRef={mapRef}
-                mapContainerRef={mapContainerRef}
-                selectedDataset={selectedDataset}
-                lat={lat}
-                lng={lon}
-                zoom={zoom}
-                onMoveEnd={handleMapMoveEnd}
-                colormap={colormap}
-                range={range}
-                setRange={setRange}
-                setColormap={setColormap}
-                selectedGlacier={selectedGlacier}
-                setSelectedGlacier={setSelectedGlacier}
-              />
-              <DataBar
-                onNavigateToGlacier={flyToGlacier}
-                datasets={datasets}
-                selectedDataset={selectedDataset}
-                setSelectedDataset={setSelectedDataset}
-                selectedGlacier={selectedGlacier}
-              />
-            </div>
+              <div>
+                <Map
+                  mapRef={mapRef}
+                  mapContainerRef={mapContainerRef}
+                  selectedDataset={selectedDataset}
+                  lat={lat}
+                  lng={lon}
+                  zoom={zoom}
+                  onMoveEnd={handleMapMoveEnd}
+                  colormap={colormap}
+                  range={range}
+                  setRange={setRange}
+                  setColormap={setColormap}
+                  selectedGlacier={selectedGlacier}
+                  setSelectedGlacier={setSelectedGlacier}
+                />
+                <DataBar
+                  onNavigateToGlacier={flyToGlacier}
+                  datasets={datasets}
+                  selectedDataset={selectedDataset}
+                  setSelectedDataset={setSelectedDataset}
+                  selectedGlacier={selectedGlacier}
+                />
+              </div>
             </Suspense>
           )
         )}
