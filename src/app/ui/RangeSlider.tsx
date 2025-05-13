@@ -7,20 +7,11 @@ type RangeSliderProps = {
   value: [number, number]
   onChange: (value: [number, number]) => void
 }
-
 export default function RangeSlider({
   selectedDataset,
   value,
   onChange,
 }: RangeSliderProps) {
-  if (!selectedDataset) return null
-
-  const handleSliderChange = (event: Event, newValue: number | number[]) => {
-    if (Array.isArray(newValue)) {
-      onChange([newValue[0], newValue[1]])
-    }
-  }
-
   const marks = React.useMemo(() => {
     if (!selectedDataset) return []
 
@@ -34,6 +25,14 @@ export default function RangeSlider({
       return { value: val, label: val.toString() }
     })
   }, [selectedDataset])
+
+  if (!selectedDataset) return null
+
+  const handleSliderChange = (event: Event, newValue: number | number[]) => {
+    if (Array.isArray(newValue)) {
+      onChange([newValue[0], newValue[1]])
+    }
+  }
 
   return (
     <Box sx={{ width: 250, mt: 1 }}>
