@@ -63,7 +63,7 @@ export default function Home() {
         setDatasets(parsedData);
 
         const idFromParam = searchParams.get('dataset') ? parseInt(searchParams.get('dataset')!, 10) : null;
-        const matchedDataset = parsedData.find(d => d.id === idFromParam);
+        const matchedDataset = parsedData.find((d : Dataset) => d.id === idFromParam);
 
         if (matchedDataset) {
           setSelectedDataset(matchedDataset);
