@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, {useMemo } from 'react';
 import {
   MaterialReactTable,
   useMaterialReactTable,
@@ -13,7 +13,6 @@ import {
   Box,
   Card,
   Stack,
-  Paper,
   Divider
 } from '@mui/material';
 import { InlineMath } from 'react-katex';
@@ -26,8 +25,6 @@ interface Props {
 }
 
 export default function StatsTable({ glacierStats, loading, error }: Props) {
-
-  
 
   const columns = useMemo<MRT_ColumnDef<GlacierStat>[]>(() => [
     {

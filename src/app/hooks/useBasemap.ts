@@ -22,7 +22,7 @@ export function useBasemap(map: Map | null, mapLoaded: boolean, basemap: string)
         map.addSource(sourceName, basemapDef.source);
       }
 
-      var beforeLayer = map.getLayer("vector-layer") ? "vector-layer" : undefined;
+      let beforeLayer = map.getLayer("vector-layer") ? "vector-layer" : undefined;
 
       if (map.getLayer("raster-layer")) {
         beforeLayer = "raster-layer";

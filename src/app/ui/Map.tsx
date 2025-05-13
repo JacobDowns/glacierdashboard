@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { Dataset } from "@/app/types/datasets";
@@ -8,8 +8,6 @@ import Legend from "@/app/ui/Legend";
 import { useBasemap } from "@/app/hooks/useBasemap";
 import BasemapSelector from "@/app/components/BasemapSelector";
 import { useGlacierLayer } from "@/app/hooks/useGlacierLayer";
-
-const MAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
 
 type Props = {
   mapRef : React.RefObject<maplibregl.Map | null>;
@@ -63,6 +61,7 @@ export default function Map({
     layerOpacity
   );
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return;
 
@@ -115,17 +114,6 @@ export default function Map({
       setMapLoaded(false);
     };
   }, []);
-
-  
-const flyToLocation = ({ center_lat, center_lon }: { center_lat: number; center_lon: number }) => {
-  if (mapRef.current) {
-    mapRef.current.flyTo({
-      center: [center_lon, center_lat],
-      zoom: 12,
-      essential: true,
-    });
-  }
-};
 
   return (
     <div className="relative">

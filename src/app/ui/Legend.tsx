@@ -109,7 +109,7 @@ export default function GlacierMapLegend({
                     value={colormap}
                     onChange={(e) => onColormapChange(e.target.value)}
                   >
-                    {colormaps.map((c: any) => (
+                    {colormaps.map((c: { name: string }) => (
                       <MenuItem key={c.name} value={c.name}>
                         {c.name}
                       </MenuItem>

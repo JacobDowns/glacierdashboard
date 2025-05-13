@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Dataset } from "@/app/types/datasets";
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
@@ -8,7 +8,6 @@ import {
   Typography,
   Stack,
   Box,
-  Link,
   Paper,
   IconButton,
   Collapse,
@@ -24,7 +23,6 @@ import StatsTable from '@/app/ui/StatsTable';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import Article from '@mui/icons-material/Article';
 import LandscapeIcon from '@mui/icons-material/Landscape';
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -60,7 +58,6 @@ type Props = {
   selectedDataset: Dataset | null;
   setSelectedDataset: (dataset: Dataset | null) => void;
   selectedGlacier: { gid: number; rgi_id: string } | null;
-  setSelectedGlacier: (glacier: { gid: number; rgi_id: string } | null) => void;
   onNavigateToGlacier: ({ cenlat, cenlng }: { cenlat: number; cenlng: number }) => void;
 };
 
@@ -69,7 +66,6 @@ export default function DataBar({
   selectedDataset,
   setSelectedDataset,
   selectedGlacier,
-  setSelectedGlacier,
   onNavigateToGlacier
 }: Props) {
   const [expanded, setExpanded] = useState<boolean>(false);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { CircularProgress, Stack } from '@mui/material';
+import { CircularProgress } from '@mui/material';
 import DataBar from '@/app/ui/DataBar';
 import Map from '@/app/ui/Map';
 import { Dataset } from "@/app/types/datasets";
@@ -178,7 +178,6 @@ export default function Home() {
             selectedDataset={selectedDataset} 
             setSelectedDataset={setSelectedDataset} 
             selectedGlacier={selectedGlacier}
-            setSelectedGlacier={setSelectedGlacier}
             />
           </div>
         )

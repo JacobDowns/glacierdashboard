@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import maplibregl from "maplibre-gl";
 import { Dataset } from "@/app/types/datasets";
 import { getColormapInterpolator } from "@/app/lib/colormaps";
