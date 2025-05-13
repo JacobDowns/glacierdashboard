@@ -7,6 +7,7 @@ import DataBar from '@/app/ui/DataBar';
 import Map from '@/app/ui/Map';
 import { Dataset } from "@/app/types/datasets";
 
+
 export default function Home() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
   const [selectedDataset, setSelectedDataset] = useState<Dataset | null>(null);
@@ -48,7 +49,9 @@ export default function Home() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await fetch("http://127.0.0.1:8000/api/datasets");
+        const API_URL = process.env.NEXT_PUBLIC_API_URL;
+        console.log(API_URL);
+        const res = await fetch(`${API_URL}/api/datasets`);
         const data = await res.json();
 
         const parsedData = data.map((d: Dataset) => ({

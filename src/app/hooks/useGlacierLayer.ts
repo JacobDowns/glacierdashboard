@@ -31,18 +31,22 @@ export function useGlacierLayer(
     const isRaster = selectedDataset.dataset_format === "raster";
     const datasetName = `${selectedDataset.collection_short_name}_${selectedDataset.dataset_short_name}`;
 
-    const colorStops = Array.from({ length: 8 }, (_, i) => {
-      const t = i / 7;
+    const colorStops = Array.from({ length: 16 }, (_, i) => {
+      const t = i / 15;
       const value = min + t * (max - min);
       return [value, interpolator(t)];
     }).flat();
 
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const DATA_URL = `${process.env.NEXT_PUBLIC_DATA_URL}/${selectedDataset.collection_short_name}/${selectedDataset.dataset_short_name}/mosaic.json`
+
     const tilesUrl =
       isRaster
-        ? `http://127.0.0.1:8000/vector_tiles/tiles/{z}/{x}/{y}`
-        : `http://127.0.0.1:8000/vector_tiles/tiles/{z}/{x}/{y}?dataset_name=${datasetName}`;
+        ? `${API_URL}/vector_tiles/tiles/{z}/{x}/{y}`
+        : `${API_URL}/vector_tiles/tiles/{z}/{x}/{y}?dataset_name=${datasetName}`;
 
-    const rasterTilesUrl = `http://localhost:8000/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@2x?url=https://glacierdashboard.s3.us-east-2.amazonaws.com/cogs/${selectedDataset.collection_short_name}/${selectedDataset.dataset_short_name}/mosaic.json&rescale=${min},${max}&colormap_name=${colormap}&format=png&unscale=true`;
+    const rasterTilesUrl = 
+    `${API_URL}/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@2x?url=${DATA_URL}&rescale=${min},${max}&colormap_name=${colormap}&format=png&unscale=true`;
 
     // Clean up previous layers/sources
     if (map.getLayer(vectorLayerId)) map.removeLayer(vectorLayerId);

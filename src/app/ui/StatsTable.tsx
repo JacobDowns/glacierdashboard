@@ -17,10 +17,7 @@ import {
   Divider
 } from '@mui/material';
 import { InlineMath } from 'react-katex';
-
-
 import type { GlacierStatsQueryResult, GlacierStat } from '@/app/types/glaciers';
-import { ST } from 'next/dist/shared/lib/utils';
 
 interface Props {
   glacierStats: GlacierStatsQueryResult | null;

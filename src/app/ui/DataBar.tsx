@@ -24,7 +24,7 @@ import StatsTable from '@/app/ui/StatsTable';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import Article from '@mui/icons-material/Article';
 import LandscapeIcon from '@mui/icons-material/Landscape';
-import MapIcon from '@mui/icons-material/Map';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -91,8 +91,8 @@ export default function DataBar({
     setGlacierStats(null);
     setGlacierStatsError(null);
     setGlacierStatsLoading(true);
-
-    fetch(`http://127.0.0.1:8000/api/glacier/${selectedGlacier.gid}`)
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    fetch(`${API_URL}/api/glacier/${selectedGlacier.gid}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Error ${res.status}: ${res.statusText}`);
