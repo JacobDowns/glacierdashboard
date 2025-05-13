@@ -1,3 +1,5 @@
+"use client"
+
 import React from 'react'
 import { Slider, Box } from '@mui/material'
 import { Dataset } from '@/app/types/datasets'

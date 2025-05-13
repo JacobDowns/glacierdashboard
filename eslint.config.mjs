@@ -16,6 +16,7 @@ const eslintConfig = [
       // Allow unused variables (turn off the rule)
       "no-unused-vars": "off",
       "@typescript-eslint/no-unused-vars": "off",
+      'missingSuspenseWithCSRBailout': 'off'
     },
   },
 ];
