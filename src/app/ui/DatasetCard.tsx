@@ -61,7 +61,7 @@ function DatasetCard({selectedDataset}: Props) {
 
         <Divider />
         <br></br>
-        <Link href={selectedDataset?.publication_url} variant="h7">{selectedDataset?.publication_title} </Link> 
+        <Link href={selectedDataset?.publication_url} variant="h6">{selectedDataset?.publication_title} </Link> 
         <Typography variant="body1">
             <b>Authors:</b> {selectedDataset?.publication_authors} 
         </Typography>
