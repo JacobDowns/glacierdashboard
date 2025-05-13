@@ -42,9 +42,8 @@ export default function GlacierSearch({
   
       const controller = new AbortController();
       abortControllerRef.current = controller;
-      console.log('fetching')
       const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      fetch(`${API_URL}/search/search?q=${encodeURIComponent(inputValue)}`, {
+      fetch(`${API_URL}/api/glacier_lookup?q=${encodeURIComponent(inputValue)}`, {
         signal: controller.signal,
       })
         .then((res) => res.json())
