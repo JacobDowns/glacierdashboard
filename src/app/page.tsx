@@ -159,6 +159,7 @@ export default function Home() {
           zoom !== null &&
           range &&
           colormap !== null && (
+            <Suspense fallback={<CircularProgress />}>
             <div>
               <Map
                 mapRef={mapRef}
@@ -183,6 +184,7 @@ export default function Home() {
                 selectedGlacier={selectedGlacier}
               />
             </div>
+            </Suspense>
           )
         )}
       </div>
