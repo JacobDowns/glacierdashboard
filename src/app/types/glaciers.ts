@@ -4,6 +4,7 @@ export type GlacierStat = {
     dataset_short_name: string;
     dataset_start_date: string; // ISO date string like "2018-01-01"
     dataset_end_date: string;   // ISO date string
+    time_code : Date;
     dataset_glacier_stats: string;
     collection_short_name: string;
     collection_name: string;

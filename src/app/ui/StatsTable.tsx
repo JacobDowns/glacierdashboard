@@ -39,6 +39,30 @@ export default function StatsTable({ glacierStats, loading, error }: Props) {
       size : 300
     },
     {
+            header: 'Time',
+            accessorKey: 'time_code',
+            accessorFn: row => new Date(row.time_code).toISOString(), // Ensure sorting works
+            Cell: ({ cell }) => {
+              const date = new Date(cell.getValue<string>());
+              const year = date.getUTCFullYear();
+              const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+              const day = String(date.getUTCDate()).padStart(2, '0');
+              return `${month}/${day}/${year}`;
+            }
+    },
+    {
+      header: 'Value',
+      accessorKey: 'value',
+      Cell: ({ cell }) => {
+        const val = cell.getValue<number | null>();
+        return val === null || val === undefined ? (
+          <span style={{ fontStyle: 'italic', color: '#888' }}>No Data</span>
+        ) : (
+          val.toFixed(3)
+        );
+      },
+    },
+    {
         accessorKey: 'data_type_name',
         header: 'Data Type',
         Cell: ({ row }) => {
@@ -57,27 +81,7 @@ export default function StatsTable({ glacierStats, loading, error }: Props) {
           );
         },
         size : 300
-      },
-    {
-      header: 'Start Date',
-      accessorKey: 'dataset_start_date',
-    },
-    {
-      header: 'End Date',
-      accessorKey: 'dataset_end_date',
-    },
-    {
-      header: 'Value',
-      accessorKey: 'value',
-      Cell: ({ cell }) => {
-        const val = cell.getValue<number | null>();
-        return val === null || val === undefined ? (
-          <span style={{ fontStyle: 'italic', color: '#888' }}>No Data</span>
-        ) : (
-          val.toFixed(3)
-        );
-      },
-    },
+    }
   ], []);
 
   const table = useMaterialReactTable({
@@ -87,10 +91,11 @@ export default function StatsTable({ glacierStats, loading, error }: Props) {
     enableGrouping: true,
     initialState: {
       density : 'compact',
-      grouping: ['collection_name'],
+      grouping: ['collection_name', 'dataset_name'],
       expanded: true,
-      columnVisibility: { dataset_start_date: false, dataset_end_date :false },
-      pagination: { pageSize: 50, pageIndex: 0 }
+      //columnVisibility: { dataset_start_date: false, dataset_end_date :false },
+      pagination: { pageSize: 250, pageIndex: 0 },
+      sorting: [{ id: 'time_code', desc: false }]
     },
     enableColumnResizing: true,
     enableColumnFilters: false,

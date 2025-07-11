@@ -20,6 +20,8 @@ type Props = {
   colormap: string;
   range: [number, number];
   setRange: (range: [number, number]) => void;
+  timeIndex: number;
+  setTimeIndex: (index: number) => void;
   setColormap: (colormap: string) => void;
   selectedGlacier: { gid: number; rgi_id: string } | null;
   setSelectedGlacier: (glacier: { gid: number; rgi_id: string } | null) => void;
@@ -36,6 +38,8 @@ export default function Map({
   colormap,
   range,
   setRange,
+  timeIndex,
+  setTimeIndex,
   setColormap,
   selectedGlacier,
   setSelectedGlacier,
@@ -57,6 +61,7 @@ export default function Map({
     selectedDataset,
     colormap,
     range,
+    timeIndex,
     selectedGlacier,
     layerOpacity
   );
@@ -127,6 +132,8 @@ export default function Map({
             range={range}
             onColormapChange={setColormap}
             onRangeChange={setRange}
+            timeIndex={timeIndex}
+            setTimeIndex={setTimeIndex}
             layerOpacity={layerOpacity}
             setLayerOpacity={setLayerOpacity}
           />

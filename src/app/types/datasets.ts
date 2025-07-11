@@ -1,17 +1,20 @@
 export type Dataset = {
     id : number;
     dataset_name: string;
-    dataset_short_name : string;
+    dataset_code : string;
+    dataset_description : string;
     dataset_format: 'raster' | 'vector';
-    dataset_start_date: number;
-    dataset_end_date: number;
-    collection_short_name: string;
+    dataset_start_date: Date;
+    dataset_end_date: Date;
+    dataset_time_format : string;
+    collection_code: string;
     collection_name: string;
     collection_description: string;
     publication_authors: string;
     publication_title: string;
     publication_year: number;
     publication_url : string;
+    data_type_code: string;
     data_type_name: string;
     data_type_type: 'continuous' | 'categorical';
     data_type_unit: string;
@@ -23,4 +26,7 @@ export type Dataset = {
     data_type_max_val: number;
     data_type_labels: string[];  
     data_type_categories: number[];  
+    dataset_dirs: string[];
+    dataset_times: Date[];
+    time_steps: number;
 };

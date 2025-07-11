@@ -15,6 +15,7 @@ export default function Home() {
   const [zoom, setZoom] = useState<number>(3.5);
   const [range, setRange] = useState<[number, number] | null>(null);
   const [colormap, setColormap] = useState<string | null>(null);
+  const [timeIndex, setTimeIndex] = useState<number | null>(null);
   const [selectedGlacier, setSelectedGlacier] = useState<{ gid: number; rgi_id: string } | null>(null);
   const [searchParamsState, setSearchParamsState] = useState<URLSearchParams | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -24,9 +25,9 @@ export default function Home() {
   const initialLoad = useRef(true);
   const firstRange = useRef<[number | null, number | null]>([null, null]);
 
-  // Hydrate search params after mount
   useEffect(() => {
     if (typeof window !== "undefined") {
+      console.log('now this');
       const params = new URLSearchParams(window.location.search);
       setSearchParamsState(params);
 
@@ -36,11 +37,13 @@ export default function Home() {
       const colormapParam = params.get("colormap");
       const minParam = params.get("min");
       const maxParam = params.get("max");
+      const timeParam = params.get("time");
 
       if (latParam) setLat(parseFloat(latParam));
       if (lonParam) setLon(parseFloat(lonParam));
       if (zoomParam) setZoom(parseFloat(zoomParam));
       if (colormapParam) setColormap(colormapParam);
+      if (timeParam) setTimeIndex(parseInt(timeParam));
 
       const min = minParam ? parseFloat(minParam) : null;
       const max = maxParam ? parseFloat(maxParam) : null;
@@ -57,10 +60,10 @@ export default function Home() {
 
         const parsedData = data.map((d: Dataset) => ({
           ...d,
-          dataset_start_date: new Date(d.dataset_start_date).getFullYear(),
-          dataset_end_date: new Date(d.dataset_end_date).getFullYear(),
+          dataset_start_date: new Date(d.dataset_start_date + 'T00:00:00Z'),
+          dataset_end_date: new Date(d.dataset_end_date + 'T00:00:00Z'),
         }));
-
+        //const parsedData = data; 
         setDatasets(parsedData);
 
         const idFromParam = searchParamsState?.get("dataset") ? parseInt(searchParamsState.get("dataset")!, 10) : null;
@@ -97,6 +100,10 @@ export default function Home() {
       setRange([defaultMin, defaultMax]);
     }
 
+    if (selectedDataset?.dataset_times?.length > 0) {
+      setTimeIndex(0); 
+    }
+
     if (initialLoad.current) {
       const colormapParam = searchParamsState?.get("colormap");
       if (colormapParam) {
@@ -127,6 +134,7 @@ export default function Home() {
     if (lat !== null) newParams.set("lat", round4(lat).toString());
     if (lon !== null) newParams.set("lon", round4(lon).toString());
     if (zoom !== null) newParams.set("zoom", round4(zoom).toString());
+    if (timeIndex !== null) newParams.set("time", timeIndex.toString());
 
     const currentUrl = searchParamsState?.toString() || "";
     const newUrl = newParams.toString();
@@ -134,7 +142,7 @@ export default function Home() {
     if (currentUrl !== newUrl) {
       router.replace(`?${newUrl}`, { scroll: false });
     }
-  }, [selectedDataset, colormap, range, lat, lon, zoom]);
+  }, [selectedDataset, colormap, range, lat, lon, zoom, timeIndex]);
 
   const handleMapMoveEnd = (newLat: number, newLon: number, newZoom: number) => {
     setLat(newLat);
@@ -162,6 +170,7 @@ export default function Home() {
           lat !== null &&
           lon !== null &&
           zoom !== null &&
+          timeIndex !== null &&
           range &&
           colormap !== null && (
             <Suspense fallback={<CircularProgress />}>
@@ -177,6 +186,8 @@ export default function Home() {
                   colormap={colormap}
                   range={range}
                   setRange={setRange}
+                  timeIndex={timeIndex}
+                  setTimeIndex={setTimeIndex}
                   setColormap={setColormap}
                   selectedGlacier={selectedGlacier}
                   setSelectedGlacier={setSelectedGlacier}
@@ -187,6 +198,7 @@ export default function Home() {
                   selectedDataset={selectedDataset}
                   setSelectedDataset={setSelectedDataset}
                   selectedGlacier={selectedGlacier}
+                  timeIndex={timeIndex}
                 />
               </div>
             </Suspense>

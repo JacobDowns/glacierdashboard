@@ -20,6 +20,7 @@ import { colormaps, getColormapInterpolator } from '@/app/lib/colormaps'
 import RangeSlider from './RangeSlider'
 import ColorBar from './ColorBar'
 import { InlineMath } from 'react-katex'
+import { on } from 'events'
 
 interface Props {
   dataset: Dataset,
@@ -27,6 +28,8 @@ interface Props {
   range: [number, number],
   onColormapChange: (colormap: string) => void,
   onRangeChange: (range: [number, number]) => void,
+  timeIndex: number,
+  setTimeIndex: (index: number) => void,
   layerOpacity: number,
   setLayerOpacity: (opacity: number) => void
 }
@@ -37,19 +40,45 @@ export default function GlacierMapLegend({
   range,
   onColormapChange,
   onRangeChange,
+  timeIndex,
+  setTimeIndex,
   layerOpacity,
   setLayerOpacity
 }: Props) {
   const [expanded, setExpanded] = useState(false)
 
-  const isContinuous = dataset?.data_type_type === 'continuous'
+  const isContinuous = dataset.data_type_type === 'continuous'
+  const timeDependent = dataset.dataset_times.length > 2;
+
+  const times = dataset.dataset_time_format === "range" ?  dataset.dataset_times.slice(0,-1) : dataset.dataset_times
+
+  const formattedTimes = times.map(
+    t => {
+      const date = new Date(t);
+      const year = date.getUTCFullYear();
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      return `${month}/${day}/${year}`;
+  });
+
+
+  const timeMarks = formattedTimes.map((label, index) => {
+    const timeSteps = formattedTimes.length - 1
+
+    dataset.dataset_times.length
+    if (index === 0 || index === timeSteps) {
+      return { value: index, label }
+    }
+    return { value: index }  // tick mark only, no label
+  })
+
   const selectedInterpolator = getColormapInterpolator(colormap)
 
   if (!dataset) return null
 
   return (
     <Box sx={{ position: 'absolute', bottom: 16, left: 16, zIndex: 10 }}>
-      <Card sx={{ p: 2, bgcolor: 'white', boxShadow: 3, minWidth: 280 }}>
+      <Card sx={{ p: 2, bgcolor: 'white', boxShadow: 3, minWidth: 375 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="subtitle1">
             {dataset.data_type_name}
@@ -60,13 +89,15 @@ export default function GlacierMapLegend({
           </IconButton>
         </Box>
 
+
+
         {isContinuous ? (
           <ColorBar
             label=""
             min={range[0]}
             max={range[1]}
             tickCount={4}
-            width={280}
+            width={350}
             height={50}
             colormap={selectedInterpolator}
           />
@@ -91,6 +122,30 @@ export default function GlacierMapLegend({
               )
             })}
           </Box>
+        )}
+
+        {timeDependent && (
+          <>
+            <Typography variant="body2" gutterBottom>
+              Time
+            </Typography>
+            <Box mt={2} sx={{ paddingLeft: 3, paddingRight: 3 }}>
+
+              <Slider
+                value={timeIndex}
+                onChange={(event, value) => {
+                  setTimeIndex(value)
+                  console.log('change', value);
+                }}
+                step={1}
+                min={0}
+                max={formattedTimes.length - 1}
+                marks={timeMarks}
+                valueLabelDisplay="auto"
+                valueLabelFormat={(index) => formattedTimes[index]}
+              />
+            </Box>
+          </>
         )}
 
         <Collapse in={expanded}>

@@ -18,6 +18,7 @@ import {
 import type { GlacierStatsQueryResult } from '@/app/types/glaciers';
 import DatasetsTable from '@/app/ui/DatasetsTable';
 import DatasetCard from '@/app/ui/DatasetCard';
+import RegionalStats from '@/app/ui/RegionalStats';
 import GlacierSearch from '@/app/components/GlacierSearch';
 import StatsTable from '@/app/ui/StatsTable';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -59,6 +60,7 @@ type Props = {
   setSelectedDataset: (dataset: Dataset | null) => void;
   selectedGlacier: { gid: number; rgi_id: string } | null;
   onNavigateToGlacier: ({ cenlat, cenlng }: { cenlat: number; cenlng: number }) => void;
+  timeIndex: number;
 };
 
 export default function DataBar({
@@ -66,7 +68,8 @@ export default function DataBar({
   selectedDataset,
   setSelectedDataset,
   selectedGlacier,
-  onNavigateToGlacier
+  onNavigateToGlacier,
+  timeIndex
 }: Props) {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [tabValue, setTabValue] = useState(0);
@@ -196,6 +199,7 @@ export default function DataBar({
               <Tab label="Select Dataset" {...a11yProps(0)} />
               <Tab label="Dataset Details" {...a11yProps(1)} />
               <Tab label="Glacier Details" {...a11yProps(2)} />
+              <Tab label="Regional Statistics" {...a11yProps(3)} />
             </Tabs>
           </Box>
 
@@ -223,6 +227,10 @@ export default function DataBar({
               />
             )}
           </TabPanel>
+          <TabPanel value={tabValue} index={3}>
+            <RegionalStats dataset={selectedDataset} timeIndex={timeIndex}/>
+          </TabPanel>
+
         </Box>
       </Collapse>
     </Paper>

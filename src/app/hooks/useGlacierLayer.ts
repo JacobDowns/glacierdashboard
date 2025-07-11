@@ -11,6 +11,7 @@ export function useGlacierLayer(
   selectedDataset: Dataset,
   colormap: string,
   range: [number, number],
+  timeIndex: number,
   selectedGlacier: SelectedGlacier,
   layerOpacity: number
 ) {
@@ -29,7 +30,13 @@ export function useGlacierLayer(
     const interpolator = getColormapInterpolator(colormap);
     const [min, max] = range;
     const isRaster = selectedDataset.dataset_format === "raster";
-    const datasetName = `${selectedDataset.collection_short_name}_${selectedDataset.dataset_short_name}`;
+
+
+    const time = selectedDataset.dataset_times[timeIndex];
+    //const datasetTime = time.replace(/-/g, "_");
+    const datasetName = `${selectedDataset.collection_code}_${selectedDataset.dataset_code}_${time}`.replace(/-/g, "_");
+
+    //const datasetName = `${selectedDataset.collection_code}_${selectedDataset.dataset_code}`;
 
     const colorStops = Array.from({ length: 16 }, (_, i) => {
       const t = i / 15;
@@ -38,7 +45,15 @@ export function useGlacierLayer(
     }).flat();
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    const DATA_URL = `${process.env.NEXT_PUBLIC_DATA_URL}/${selectedDataset.collection_short_name}/${selectedDataset.dataset_short_name}/mosaic.json`
+    const collection_code = selectedDataset.collection_code;
+    const dataset_code = selectedDataset.dataset_code;
+    
+    //console.log('this', selectedDataset.dataset_times[timeIndex]);
+
+    console.log('setting time', time);
+    console.log('dataset name', datasetName);
+
+    const DATA_URL = `${process.env.NEXT_PUBLIC_METADATA_URL}/${collection_code}/${dataset_code}/${time}.json`
 
     const tilesUrl =
       isRaster
@@ -46,7 +61,7 @@ export function useGlacierLayer(
         : `${API_URL}/vector_tiles/tiles/{z}/{x}/{y}?dataset_name=${datasetName}`;
 
     const rasterTilesUrl = 
-    `${API_URL}/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@2x?url=${DATA_URL}&rescale=${min},${max}&colormap_name=${colormap}&format=png&unscale=true`;
+    `${API_URL}/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@2x?url=${DATA_URL}&rescale=${min},${max}&colormap_name=${colormap}&format=png&unscale=true&nodata=nan`;
 
     // Clean up previous layers/sources
     if (map.getLayer(vectorLayerId)) map.removeLayer(vectorLayerId);
@@ -114,7 +129,7 @@ export function useGlacierLayer(
       filter: ["==", "gid", -1], // default hidden
     });
 
-  }, [mapLoaded, mapRef, selectedDataset, colormap, range, layerOpacity]);
+  }, [mapLoaded, mapRef, selectedDataset, colormap, range, layerOpacity, timeIndex]);
 
   // Update outline filter when glacier selection changes
   useEffect(() => {

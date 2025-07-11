@@ -37,7 +37,7 @@ export default function RangeSlider({
   }
 
   return (
-    <Box sx={{ width: 250, mt: 1 }}>
+    <Box sx={{ width: 300, mt: 1 }}>
       <Slider
         value={value}
         onChange={handleSliderChange}

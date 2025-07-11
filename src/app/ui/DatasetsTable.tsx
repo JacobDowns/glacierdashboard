@@ -28,14 +28,14 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
     const columns = useMemo<MRT_ColumnDef<Dataset>[]>(
         () => [
           {
-            header: 'Collection',
-            accessorKey: 'collection_name',
-            size : 250
-          },
-          {
             header: 'Dataset Name',
             accessorKey: 'dataset_name',
             size : 300
+          },
+          {
+            header: 'Collection',
+            accessorKey: 'collection_name',
+            size : 250
           },
           {
             header: 'Data Type',
@@ -46,18 +46,38 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
             accessorKey: 'dataset_format',
           },
           {
-            header: 'Start Year',
+            header: 'Start Date',
             accessorKey: 'dataset_start_date',
+            accessorFn: row => row.dataset_start_date?.toISOString(), // Ensure sorting works
+            Cell: ({ cell }) => {
+              const date = new Date(cell.getValue<string>());
+              const year = date.getUTCFullYear();
+              const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+              const day = String(date.getUTCDate()).padStart(2, '0');
+              return `${month}/${day}/${year}`;
+            }
           },
           {
-            header: 'End Year',
+            header: 'End Date',
             accessorKey: 'dataset_end_date',
+            accessorFn: row => row.dataset_end_date?.toISOString(),
+            Cell: ({ cell }) => {
+              const date = new Date(cell.getValue<string>());
+              const year = date.getUTCFullYear();
+              const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+              const day = String(date.getUTCDate()).padStart(2, '0');
+              return `${month}/${day}/${year}`;
+            }
           },
-      
+          {
+            header: 'Time Steps',
+            accessorKey: 'time_steps',
+          },
           {
             header: 'Authors',
             accessorKey: 'publication_authors',
           },
+          
     
         ],
         [],
@@ -73,7 +93,7 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
       density : 'compact',
       grouping: ['collection_name'],
       expanded: true,
-      pagination: { pageSize: 50, pageIndex: 0 }
+      pagination: { pageSize: 50, pageIndex: 0 },
     },
     enableColumnResizing: true,
     enableColumnFilters: false,
