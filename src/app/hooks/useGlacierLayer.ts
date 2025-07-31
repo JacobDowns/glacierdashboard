@@ -61,7 +61,7 @@ export function useGlacierLayer(
         : `${API_URL}/vector_tiles/tiles/{z}/{x}/{y}?dataset_name=${datasetName}`;
 
     const rasterTilesUrl = 
-    `${API_URL}/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@2x?url=${DATA_URL}&rescale=${min},${max}&colormap_name=${colormap}&format=png&unscale=true&nodata=nan`;
+    `${API_URL}/mosaicjson/tiles/WebMercatorQuad/{z}/{x}/{y}@2x?url=${DATA_URL}&rescale=${min},${max}&colormap_name=${colormap}&format=png&unscale=true`;
 
     // Clean up previous layers/sources
     if (map.getLayer(vectorLayerId)) map.removeLayer(vectorLayerId);

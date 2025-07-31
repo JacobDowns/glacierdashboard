@@ -8,10 +8,11 @@ import Legend from "@/app/ui/Legend";
 import { useBasemap } from "@/app/hooks/useBasemap";
 import BasemapSelector from "@/app/components/BasemapSelector";
 import { useGlacierLayer } from "@/app/hooks/useGlacierLayer";
+import { useSubregionLayer } from "@/app/hooks/useSubregionLayer";
 
 type Props = {
-  mapRef : React.RefObject<maplibregl.Map | null>;
-  mapContainerRef : React.RefObject<HTMLDivElement | null>;
+  mapRef: React.RefObject<maplibregl.Map | null>;
+  mapContainerRef: React.RefObject<HTMLDivElement | null>;
   selectedDataset: Dataset;
   lat: number;
   lng: number;
@@ -25,6 +26,11 @@ type Props = {
   setColormap: (colormap: string) => void;
   selectedGlacier: { gid: number; rgi_id: string } | null;
   setSelectedGlacier: (glacier: { gid: number; rgi_id: string } | null) => void;
+  parksGeoJSON: any | null;
+  o1GeoJSON: any | null;
+  o2GeoJSON: any | null;
+  selectedSubregion: "parks" | "o1" | "o2" | "None";
+  setSelectedSubregion: (subregion: "parks" | "o1" | "o2" | "None") => void;
 };
 
 export default function Map({
@@ -43,6 +49,11 @@ export default function Map({
   setColormap,
   selectedGlacier,
   setSelectedGlacier,
+  parksGeoJSON,
+  o1GeoJSON,
+  o2GeoJSON, 
+  selectedSubregion,
+  setSelectedSubregion
 }: Props) {
 
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -55,7 +66,7 @@ export default function Map({
     basemap
   );
 
-   useGlacierLayer(
+  useGlacierLayer(
     mapRef,
     mapLoaded,
     selectedDataset,
@@ -65,6 +76,14 @@ export default function Map({
     selectedGlacier,
     layerOpacity
   );
+
+  useSubregionLayer({
+    map: mapRef.current,
+    selectedSubregion,
+    parksGeoJSON,
+    o1GeoJSON,
+    o2GeoJSON,
+  });
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -82,9 +101,9 @@ export default function Map({
     });
 
     map.on("load", () => {
-      setMapLoaded(true); 
+      setMapLoaded(true);
 
-       // Blur focus from map to prevent scroll hijacking
+      // Blur focus from map to prevent scroll hijacking
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
@@ -123,7 +142,13 @@ export default function Map({
   return (
     <div className="relative">
       <div ref={mapContainerRef} style={{ width: "100vw", height: "1000px" }} />
-      <BasemapSelector basemap={basemap} setBasemap={setBasemap} />
+      <BasemapSelector 
+        basemap={basemap} 
+        setBasemap={setBasemap} 
+        selectedSubregion={selectedSubregion}
+        setSelectedSubregion={setSelectedSubregion}
+        
+      />
       <div className="absolute bottom-4 left-4 z-10">
         {selectedDataset && (
           <Legend

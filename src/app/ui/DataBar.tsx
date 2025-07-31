@@ -61,6 +61,7 @@ type Props = {
   selectedGlacier: { gid: number; rgi_id: string } | null;
   onNavigateToGlacier: ({ cenlat, cenlng }: { cenlat: number; cenlng: number }) => void;
   timeIndex: number;
+  selectedSubregion: "parks" | "o1" | "o2" | "None";
 };
 
 export default function DataBar({
@@ -69,7 +70,8 @@ export default function DataBar({
   setSelectedDataset,
   selectedGlacier,
   onNavigateToGlacier,
-  timeIndex
+  timeIndex,
+  selectedSubregion
 }: Props) {
   const [expanded, setExpanded] = useState<boolean>(false);
   const [tabValue, setTabValue] = useState(0);
@@ -228,7 +230,7 @@ export default function DataBar({
             )}
           </TabPanel>
           <TabPanel value={tabValue} index={3}>
-            <RegionalStats dataset={selectedDataset} timeIndex={timeIndex}/>
+            <RegionalStats dataset={selectedDataset} timeIndex={timeIndex} selectedSubregion={selectedSubregion}/>
           </TabPanel>
 
         </Box>

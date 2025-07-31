@@ -10,13 +10,8 @@ import {
     Typography,
     Box,
     Card,
-    Stack,
     Divider,
-    MenuItem,
-    FormControl,
-    Select,
     SelectChangeEvent,
-    InputLabel,
     CircularProgress
 } from '@mui/material';
 import { InlineMath } from 'react-katex';
@@ -28,11 +23,15 @@ import { start } from 'repl';
 interface Props {
     dataset: Dataset | null;
     timeIndex: number;
+    selectedSubregion: "parks" | "o1" | "o2" | "None";
 }
 
-export default function StatsTable({ dataset, timeIndex }: Props) {
+export default function StatsTable({
+    dataset,
+    timeIndex,
+    selectedSubregion
+}: Props) {
 
-    const [regions, setRegions] = useState<string>("o1region");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [regionStats, setRegionStats] = useState<RegionStat[]>([]);
@@ -52,11 +51,11 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
             header: 'Region Area', // optional plain string, used for metadata
             Header: () => (
                 <>
-                Region Area (<InlineMath math={'\\text{km}^2'} />)
+                    Glacierized Area (<InlineMath math={'\\text{km}^2'} />)
                 </>
             ),
             accessorKey: 'total_area',
-            size: 200,
+            size: 230,
             Cell: ({ cell }) => {
                 const val = cell.getValue<number | null>();
                 return val === null || val === undefined ? (
@@ -67,7 +66,7 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
             },
         },
         {
-            header: 'Glacier Minimum',
+            header: 'Population Min.',
             accessorKey: 'min',
             size: 200,
             Cell: ({ cell }) => {
@@ -80,7 +79,7 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
             },
         },
         {
-            header: 'Glacier Maximum',
+            header: 'Population Max.',
             accessorKey: 'max',
             size: 200,
             Cell: ({ cell }) => {
@@ -93,7 +92,7 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
             },
         },
         {
-            header: 'Area Weighted Average',
+            header: 'Area Weighted Avg.',
             accessorKey: 'weighted_avg',
             size: 250,
             Cell: ({ cell }) => {
@@ -106,7 +105,7 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
             },
         },
         {
-            header: 'Glacier Average',
+            header: 'Population Avg.',
             accessorKey: 'avg',
             size: 250,
             Cell: ({ cell }) => {
@@ -163,10 +162,7 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
     });
 
 
-    const handleChange = (event: SelectChangeEvent) => {
-        setRegions(event.target.value);
-    };
-
+ 
     useEffect(() => {
 
         if (!dataset) return;
@@ -177,7 +173,7 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
         const column_name = dataset?.collection_code + '_' + dataset?.dataset_code + '_' + time;
 
         const API_URL = process.env.NEXT_PUBLIC_API_URL;
-        fetch(`${API_URL}/api/regional_stats?regions=${regions}&column_name=${column_name}`)
+        fetch(`${API_URL}/api/regional_stats?regions=${selectedSubregion}&column_name=${column_name}`)
             .then((res) => {
                 if (!res.ok) {
                     throw new Error(`Error ${res.status}: ${res.statusText}`);
@@ -194,9 +190,9 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
             .finally(() => {
                 setLoading(false);
             });
-    }, [dataset, regions, timeIndex]);
+    }, [dataset, selectedSubregion, timeIndex]);
 
-    if (dataset?.dataset_format !== 'vector') return <Typography variant="body1">Please select a vector dataset to see regional statistics.</Typography>;
+    if (dataset?.dataset_format !== 'vector' || selectedSubregion === "None") return <Typography variant="body1">Please select a vector dataset and subregions to see regional statistics.</Typography>;
 
     if (loading) return <CircularProgress />;
     if (error) return <Typography variant="body1">{error}</Typography>;
@@ -222,24 +218,7 @@ export default function StatsTable({ dataset, timeIndex }: Props) {
                 </Typography>
                 <Typography variant="body1">
                     <b>Unit:</b> {latex ? <InlineMath math={latex} /> : <span style={{ fontStyle: 'italic', color: '#666' }}>unitless</span>}
-                </Typography>
-         
-            <br></br>
-                <Typography variant="h6">
-                    Regions
-                </Typography>
-                <Divider />
-                <br></br>
-                <Select
-                    labelId="demo-simple-select-label"
-                    id="demo-simple-select"
-                    value={regions}
-                    onChange={handleChange}
-                >
-                    <MenuItem value={"o1region"}>RGI Regions</MenuItem>
-                    <MenuItem value={"o2region"}>RGI Subregions</MenuItem>
-                    <MenuItem value={"park_name"}>National Parks</MenuItem>
-                </Select>
+                </Typography>  
             </Card>
 
             <MaterialReactTable table={table} />

@@ -1,5 +1,5 @@
 "use client";
-import React, { Suspense, useEffect, useState, useRef } from "react";
+import React, { Suspense, useEffect, useState, useRef, use } from "react";
 import { CircularProgress } from "@mui/material";
 import DataBar from "@/app/ui/DataBar";
 import Map from "@/app/ui/Map";
@@ -20,6 +20,10 @@ export default function Home() {
   const [searchParamsState, setSearchParamsState] = useState<URLSearchParams | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const [selectedSubregion, setSelectedSubregion] = useState<"parks" | "o1" | "o2" | "None">("None");
+  const [parksGeoJSON, setParksGeoJSON] = useState<any | null>(null);
+  const [o1GeoJSON, setO1GeoJSON] = useState<any | null>(null);
+  const [o2GeoJSON, setO2GeoJSON] = useState<any | null>(null);
 
   const router = useRouter();
   const initialLoad = useRef(true);
@@ -27,7 +31,6 @@ export default function Home() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      console.log('now this');
       const params = new URLSearchParams(window.location.search);
       setSearchParamsState(params);
 
@@ -51,6 +54,7 @@ export default function Home() {
     }
   }, []);
 
+  // Fetch all datasets
   useEffect(() => {
     async function fetchData() {
       try {
@@ -85,6 +89,40 @@ export default function Home() {
       fetchData();
     }
   }, [searchParamsState]);
+
+  useEffect(() => {
+  if (!searchParamsState) return;
+
+  async function fetchSubregionGeoJSONs() {
+    try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL;
+      const [parksRes, o1Res, o2Res] = await Promise.all([
+        fetch(`${API_URL}/api/parks`),
+        fetch(`${API_URL}/api/o1regions`),
+        fetch(`${API_URL}/api/o2regions`)
+      ]);
+
+      if (!parksRes.ok || !o1Res.ok || !o2Res.ok) {
+        throw new Error("Failed to fetch one or more subregion layers");
+      }
+
+      const [parks, o1, o2] = await Promise.all([
+        parksRes.json(),
+        o1Res.json(),
+        o2Res.json()
+      ]);
+
+      console.log('loaded data');
+      setParksGeoJSON(parks);
+      setO1GeoJSON(o1);
+      setO2GeoJSON(o2);
+    } catch (err) {
+      console.error("Failed to load subregion GeoJSONs:", err);
+    }
+  }
+
+  fetchSubregionGeoJSONs();
+}, [searchParamsState]);
 
   useEffect(() => {
     if (!selectedDataset) return;
@@ -191,6 +229,11 @@ export default function Home() {
                   setColormap={setColormap}
                   selectedGlacier={selectedGlacier}
                   setSelectedGlacier={setSelectedGlacier}
+                  parksGeoJSON={parksGeoJSON}
+                  o1GeoJSON={o1GeoJSON}
+                  o2GeoJSON={o2GeoJSON}
+                  selectedSubregion={selectedSubregion}
+                  setSelectedSubregion={setSelectedSubregion}
                 />
                 <DataBar
                   onNavigateToGlacier={flyToGlacier}
@@ -199,6 +242,7 @@ export default function Home() {
                   setSelectedDataset={setSelectedDataset}
                   selectedGlacier={selectedGlacier}
                   timeIndex={timeIndex}
+                  selectedSubregion={selectedSubregion}
                 />
               </div>
             </Suspense>
