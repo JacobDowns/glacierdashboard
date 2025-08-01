@@ -65,7 +65,6 @@ export default function GlacierMapLegend({
   const timeMarks = formattedTimes.map((label, index) => {
     const timeSteps = formattedTimes.length - 1
 
-    dataset.dataset_times.length
     if (index === 0 || index === timeSteps) {
       return { value: index, label }
     }
