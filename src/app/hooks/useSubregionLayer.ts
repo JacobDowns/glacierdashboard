@@ -64,7 +64,7 @@ export function useSubregionLayer({
             source: sourceId,
             paint: {
                 "fill-color": "#f59e0b",
-                "fill-opacity": 0.3,
+                "fill-opacity": 0.15,
             },
         });
 

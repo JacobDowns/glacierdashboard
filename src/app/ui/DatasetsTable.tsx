@@ -70,8 +70,9 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
             }
           },
           {
-            header: 'Time Steps',
+            header: 'Available Times',
             accessorKey: 'time_steps',
+             size : 200
           },
           {
             header: 'Authors',
