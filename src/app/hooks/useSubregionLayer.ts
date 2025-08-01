@@ -1,14 +1,15 @@
 import { useEffect } from "react";
 import maplibregl from "maplibre-gl";
+import type { FeatureCollection, Geometry } from "geojson";
 
 type SubregionType = "parks" | "o1" | "o2" | "None";
 
 interface Props {
     map: maplibregl.Map | null;
     selectedSubregion: SubregionType;
-    parksGeoJSON: any | null;
-    o1GeoJSON: any | null;
-    o2GeoJSON: any | null;
+    parksGeoJSON: FeatureCollection<Geometry> | null;
+    o1GeoJSON: FeatureCollection<Geometry> | null;
+    o2GeoJSON: FeatureCollection<Geometry> | null;
 }
 
 export function useSubregionLayer({
@@ -22,7 +23,6 @@ export function useSubregionLayer({
 
 
         if (!map) return;
-        console.log('heresdfsd');
 
         // Choose data + id based on selected type
         const sourceId = "subregion";

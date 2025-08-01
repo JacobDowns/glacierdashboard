@@ -9,6 +9,7 @@ import { useBasemap } from "@/app/hooks/useBasemap";
 import BasemapSelector from "@/app/components/BasemapSelector";
 import { useGlacierLayer } from "@/app/hooks/useGlacierLayer";
 import { useSubregionLayer } from "@/app/hooks/useSubregionLayer";
+import type { FeatureCollection, Geometry } from "geojson";
 
 type Props = {
   mapRef: React.RefObject<maplibregl.Map | null>;
@@ -26,9 +27,9 @@ type Props = {
   setColormap: (colormap: string) => void;
   selectedGlacier: { gid: number; rgi_id: string } | null;
   setSelectedGlacier: (glacier: { gid: number; rgi_id: string } | null) => void;
-  parksGeoJSON: any | null;
-  o1GeoJSON: any | null;
-  o2GeoJSON: any | null;
+  parksGeoJSON: FeatureCollection<Geometry> | null;
+  o1GeoJSON: FeatureCollection<Geometry> | null;
+  o2GeoJSON: FeatureCollection<Geometry> | null;
   selectedSubregion: "parks" | "o1" | "o2" | "None";
   setSelectedSubregion: (subregion: "parks" | "o1" | "o2" | "None") => void;
 };

@@ -5,6 +5,7 @@ import DataBar from "@/app/ui/DataBar";
 import Map from "@/app/ui/Map";
 import { Dataset } from "@/app/types/datasets";
 import { useRouter } from "next/navigation";
+import type { FeatureCollection, Geometry } from "geojson";
 
 export default function Home() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -21,9 +22,9 @@ export default function Home() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [selectedSubregion, setSelectedSubregion] = useState<"parks" | "o1" | "o2" | "None">("None");
-  const [parksGeoJSON, setParksGeoJSON] = useState<any | null>(null);
-  const [o1GeoJSON, setO1GeoJSON] = useState<any | null>(null);
-  const [o2GeoJSON, setO2GeoJSON] = useState<any | null>(null);
+  const [parksGeoJSON, setParksGeoJSON] = useState<FeatureCollection<Geometry> | null>(null);
+  const [o1GeoJSON, setO1GeoJSON] = useState<FeatureCollection<Geometry> | null>(null);
+  const [o2GeoJSON, setO2GeoJSON] = useState<FeatureCollection<Geometry> | null>(null);
 
   const router = useRouter();
   const initialLoad = useRef(true);
