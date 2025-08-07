@@ -19,13 +19,13 @@ import {
     AccordionSummary,
     AccordionDetails,
     AccordionActions
-} from '@mui/material';
+} from "@mui/material";
 
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 
 function About() {
     return (
-        <Box sx={{ mt: 2, width: '100%', maxWidth: 1200, mx: 'auto' }}>
+        <Box sx={{ mt: 2, width: "100%", maxWidth: 1200, mx: "auto" }}>
             <Card elevation={3} sx={{ padding: 2 }}>
                 <Typography variant="h5">About</Typography>
                 <Divider />
@@ -79,7 +79,7 @@ function About() {
                         Below the map is the information bar, which displays the name of the currently selected dataset and the RGI ID of the currently
                         selected glacier (if any). It also contains the search bar.
 
-                        <ul style={{ marginTop: 8, paddingLeft: 20, listStyleType: 'disc' }}>
+                        <ul style={{ marginTop: 8, paddingLeft: 20, listStyleType: "disc" }}>
                             <li>Clicking on the datasets button on the left-hand side of the information bar displays the datasets selection table.</li>
                             <li>
                                 The name of the currently selected dataset is displayed to the right of the "Datasets" button. Clicking on the name of the selected dataset will display all dataset metadata.
@@ -177,7 +177,7 @@ function About() {
                         Click the "Datasets" button in the information bar or the "Select Dataset" tab to view all available datasets.
                         The Glacier Dashboard contains two primary types of data:
 
-                        <ul style={{ marginTop: 8, paddingLeft: 20, listStyleType: 'disc' }}>
+                        <ul style={{ marginTop: 8, paddingLeft: 20, listStyleType: "disc" }}>
                             <li>Raster Datasets: These are spatially resolved fields displayed at 100-meter resolution. Examples include elevation change and ice thickness.</li>
                             <li>Vector Datasets: These represent single values per glacier, such as average elevation or maximum thickness (i.e., glacier statistics).</li>
                         </ul>
