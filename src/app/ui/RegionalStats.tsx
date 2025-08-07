@@ -39,7 +39,7 @@ export default function StatsTable({
     const columns = useMemo<MRT_ColumnDef<RegionStat>[]>(() => [
         {
             header: 'Region',
-            accessorKey: 'region',
+            accessorKey: 'display_name',
             size: 300
         },
         {
@@ -57,6 +57,31 @@ export default function StatsTable({
             accessorKey: 'total_area',
             size: 230,
             Cell: ({ cell }) => {
+                const val = cell.getValue<number | null>();
+                return val === null || val === undefined ? (
+                    <span style={{ fontStyle: 'italic', color: '#888' }}>No Data</span>
+                ) : (
+                    val.toFixed(3)
+                );
+            },
+        },
+        {
+            header: 'Area Weighted Avg.',
+            accessorKey: 'weighted_avg',
+            size: 250,
+            Cell: ({ cell }) => {
+                const val = cell.getValue<number | null>();
+                return val === null || val === undefined ? (
+                    <span style={{ fontStyle: 'italic', color: '#888' }}>No Data</span>
+                ) : (
+                    val.toFixed(3)
+                );
+            },
+        },
+        {
+            header: 'Area Weighted Sum',
+            accessorKey: 'weighted_sum',
+            size: 300, Cell: ({ cell }) => {
                 const val = cell.getValue<number | null>();
                 return val === null || val === undefined ? (
                     <span style={{ fontStyle: 'italic', color: '#888' }}>No Data</span>
@@ -91,19 +116,7 @@ export default function StatsTable({
                 );
             },
         },
-        {
-            header: 'Area Weighted Avg.',
-            accessorKey: 'weighted_avg',
-            size: 250,
-            Cell: ({ cell }) => {
-                const val = cell.getValue<number | null>();
-                return val === null || val === undefined ? (
-                    <span style={{ fontStyle: 'italic', color: '#888' }}>No Data</span>
-                ) : (
-                    val.toFixed(3)
-                );
-            },
-        },
+        
         {
             header: 'Population Avg.',
             accessorKey: 'avg',
@@ -117,8 +130,9 @@ export default function StatsTable({
                 );
             },
         },
+     
         {
-            header: 'Sum',
+            header: 'Population Sum',
             accessorKey: 'sum',
             size: 300, Cell: ({ cell }) => {
                 const val = cell.getValue<number | null>();

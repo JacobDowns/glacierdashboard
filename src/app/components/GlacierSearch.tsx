@@ -79,7 +79,7 @@ export default function GlacierSearch({
       }}
       renderInput={(params) => (
         <TextField
-          sx={{ width: 400 }}
+          sx={{ width: 350 }}
           {...params}
           label="Glacier Search"
           slotProps={{

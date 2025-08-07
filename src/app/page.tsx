@@ -6,6 +6,7 @@ import Map from "@/app/ui/Map";
 import { Dataset } from "@/app/types/datasets";
 import { useRouter } from "next/navigation";
 import type { FeatureCollection, Geometry } from "geojson";
+import Navigation from "@/app/components/Navigation";
 
 export default function Home() {
   const [datasets, setDatasets] = useState<Dataset[]>([]);
@@ -200,6 +201,7 @@ export default function Home() {
   };
 
   return (
+    
     <Suspense fallback={<CircularProgress />}>
       <div style={{ minWidth: "1400px", width: "100%" }}>
         {loading || !range ? (
@@ -214,6 +216,7 @@ export default function Home() {
           colormap !== null && (
             <Suspense fallback={<CircularProgress />}>
               <div>
+                <Navigation />
                 <Map
                   mapRef={mapRef}
                   mapContainerRef={mapContainerRef}

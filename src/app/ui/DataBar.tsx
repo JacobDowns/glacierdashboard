@@ -19,6 +19,7 @@ import type { GlacierStatsQueryResult } from '@/app/types/glaciers';
 import DatasetsTable from '@/app/ui/DatasetsTable';
 import DatasetCard from '@/app/ui/DatasetCard';
 import RegionalStats from '@/app/ui/RegionalStats';
+import About from '@/app/components/About';
 import GlacierSearch from '@/app/components/GlacierSearch';
 import StatsTable from '@/app/ui/StatsTable';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
@@ -73,8 +74,8 @@ export default function DataBar({
   timeIndex,
   selectedSubregion
 }: Props) {
-  const [expanded, setExpanded] = useState<boolean>(false);
-  const [tabValue, setTabValue] = useState(0);
+  const [expanded, setExpanded] = useState<boolean>(true);
+  const [tabValue, setTabValue] = useState(4);
   const [glacierStats, setGlacierStats] = useState<GlacierStatsQueryResult | null>(null);
   const [glacierStatsLoading, setGlacierStatsLoading] = useState(false);
   const [glacierStatsError, setGlacierStatsError] = useState<string | null>(null);
@@ -118,7 +119,8 @@ export default function DataBar({
   };
 
   return (
-    <Paper elevation={4} sx={{ overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', justifyContent: 'center'}}>
+    <Paper elevation={4} sx={{ overflow: 'hidden', 'width' : 1600, 'minWidth': '2000'}}>
       {/* Header */}
       <Box
         sx={{
@@ -202,6 +204,7 @@ export default function DataBar({
               <Tab label="Dataset Details" {...a11yProps(1)} />
               <Tab label="Glacier Details" {...a11yProps(2)} />
               <Tab label="Regional Statistics" {...a11yProps(3)} />
+               <Tab label="About" {...a11yProps(4)} />
             </Tabs>
           </Box>
 
@@ -232,9 +235,14 @@ export default function DataBar({
           <TabPanel value={tabValue} index={3}>
             <RegionalStats dataset={selectedDataset} timeIndex={timeIndex} selectedSubregion={selectedSubregion}/>
           </TabPanel>
+            <TabPanel value={tabValue} index={4}>
+            <About />
+          </TabPanel>
 
         </Box>
       </Collapse>
     </Paper>
+    </Box>
+
   );
 }

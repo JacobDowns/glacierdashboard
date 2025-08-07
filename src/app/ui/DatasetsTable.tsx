@@ -30,12 +30,12 @@ export default function DatasetsTable({ datasets, selectedDataset, setSelectedDa
           {
             header: 'Dataset Name',
             accessorKey: 'dataset_name',
-            size : 300
+            size : 270
           },
           {
             header: 'Collection',
             accessorKey: 'collection_name',
-            size : 250
+            size : 270
           },
           {
             header: 'Data Type',
