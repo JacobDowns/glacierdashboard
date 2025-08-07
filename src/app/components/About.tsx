@@ -272,13 +272,13 @@ function About() {
                     </AccordionDetails>
                 </Accordion>
             </Card>
-
+            <br />
             <Card elevation={3} sx={{ padding: 2 }}>
                 <Typography variant="h5">Contact</Typography>
                 <Divider />
                 <br />
                 <Typography variant="body1">
-                    {`Need help or interested in adding your data to the Glacier Dashboard? Please reach out!`}
+                    {`For questions, comments, or to ask about including new datasets please contact us here:`}
                 </Typography>
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 650 }}>
