@@ -3,10 +3,10 @@
 import { Box, Button, Card, Stack } from '@mui/material';
 
 const navLinks = [
-  { label: 'Alaska CASC', href: '#' },
-  { label: 'Alaska Science Center', href: '#' },
-  { label: 'NOROCK', href: '#' },
-  { label: 'Benchmark Glacier Project', href: '#' },
+  { label: 'Alaska CASC', href: 'https://akcasc.org/' },
+  { label: 'Alaska Science Center', href: 'https://www.usgs.gov/centers/alaska-science-center' },
+  { label: 'NOROCK', href: 'https://www.usgs.gov/centers/norock' },
+  { label: 'Benchmark Glacier Project', href: 'https://www.usgs.gov/publications/us-geological-survey-benchmark-glacier-project' },
 ];
 
 export default function NavBar() {
